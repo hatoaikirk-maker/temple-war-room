@@ -352,7 +352,7 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 <div class="overlay" id="setupModal" style="display:none">
   <div class="modal">
     <h2>⚙️ 活動設定</h2>
-    <p class="sub">每個參數都會影響 KPI 計算與行動建議，請盡量填完整。</p>
+    <p class="sub">目前專案：<strong id="setup-proj-name" style="color:var(--blue)">—</strong>｜每個參數都會影響 KPI 計算與行動建議，請盡量填完整。</p>
 
     <div class="modal-divider">📅 募資基本資訊</div>
     <div class="mg"><label>案名 / 活動名稱</label><input type="text" id="s-name" placeholder="e.g. 北港義民廟 × 柴語錄 義犬守護計畫"></div>
@@ -411,7 +411,7 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
     <div class="fm-head">
       <div>
         <h2>🧮 公式庫 / 計算參數</h2>
-        <p>所有影響系統計算與行動建議的參數，可即時修改並儲存</p>
+        <p>目前專案：<strong id="formula-proj-name" style="color:var(--blue)">—</strong>｜所有影響系統計算與行動建議的參數，可即時修改並儲存</p>
       </div>
       <button class="fm-close" onclick="closeFormula()">✕</button>
     </div>
@@ -1060,6 +1060,8 @@ function autoCalc() {
   } else {erEl.value='';erEl.className='calc';ctrEl.value='';ctrEl.className='calc';}
   document.getElementById('zz-aov').value=(zzOrds>0&&zzNew>0)?'NT$'+Math.round(zzNew/zzOrds).toLocaleString():'';
   cfg.current=zzTotal;renderStats();
+  // 金額立即寫入 config（不等 debounce），防止重整遺失
+  if(currentProjectId) SB.from('ym_config').upsert([{project_id:currentProjectId,key:'current',value:String(zzTotal)}],{onConflict:'project_id,key'});
   clearTimeout(dailySaveTimer);dailySaveTimer=setTimeout(saveDaily,1500);
 }
 
@@ -1620,6 +1622,8 @@ function renderActionsTo(targetId,acts){
 
 // ════ Setup ═══════════════════════════════════
 function openSetup(){
+  const projName=projects.find(p=>p.id===currentProjectId)?.name||cfg.name||'—';
+  const el=document.getElementById('setup-proj-name');if(el)el.textContent=projName;
   document.getElementById('s-name').value   = cfg.name||'';
   document.getElementById('s-goal').value   = cfg.goal;
   document.getElementById('s-start').value  = cfg.start;
@@ -1696,6 +1700,8 @@ async function saveSetup(){
 }
 // ════ 公式庫 ══════════════════════════════════
 function openFormula(){
+  const projName=projects.find(p=>p.id===currentProjectId)?.name||cfg.name||'—';
+  const el=document.getElementById('formula-proj-name');if(el)el.textContent=projName;
   const k=kpi();
   // 填入目前所有參數值
   document.getElementById('fm-goal').value        = cfg.goal;
@@ -1767,7 +1773,13 @@ async function saveFormula(){
 
 function promptUpdateAmount(){
   const v=prompt('輸入目前累積募資金額（NT$）：',cfg.current||0);
-  if(v!==null){cfg.current=parseInt(v)||0;document.getElementById('zz-total').value=cfg.current;SB.from('ym_config').upsert([{project_id:currentProjectId,key:'current',value:String(cfg.current)}],{onConflict:'project_id,key'});renderStats();renderProgressBar();}
+  if(v!==null){
+    cfg.current=parseInt(v)||0;
+    document.getElementById('zz-total').value=cfg.current;
+    SB.from('ym_config').upsert([{project_id:currentProjectId,key:'current',value:String(cfg.current)}],{onConflict:'project_id,key'})
+      .then(({error})=>{ if(error) showToast('❌ 金額儲存失敗：'+error.message); else showToast('✓ 金額已儲存'); });
+    renderStats();renderProgressBar();
+  }
 }
 
 // ════ Utils ═══════════════════════════════════
