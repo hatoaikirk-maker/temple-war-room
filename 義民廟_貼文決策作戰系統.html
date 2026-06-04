@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>北港義民廟 × 柴語錄 | 作戰系統</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sb:#1a2035;--sb2:#252d45;--sb-txt:#8892a4;--sb-act:#2563eb;
+  --bg:#f0f3f8;--w:#fff;--bd:#e4e9f2;
+  --t:#1e293b;--t2:#64748b;--t3:#94a3b8;
+  --blue:#2563eb;--blt:#eff6ff;
+  --green:#16a34a;--yellow:#d97706;--red:#dc2626;
+  --sb-w:220px
+}
+body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background:var(--bg);color:var(--t);display:flex;min-height:100vh;font-size:14px}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sb-w);background:var(--sb);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-logo-icon{width:36px;height:36px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.sb-logo-name{font-size:13px;font-weight:800;color:#fff;line-height:1.2}
+.sb-logo-sub{font-size:10px;color:var(--sb-txt);margin-top:2px}
+.sb-section{padding:14px 10px 4px;font-size:9px;font-weight:700;color:rgba(136,146,164,.6);text-transform:uppercase;letter-spacing:.6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;margin:1px 6px;transition:all .15s;color:var(--sb-txt);font-size:12px;font-weight:600;text-decoration:none}
+.sb-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.sb-item.active{background:var(--blue);color:#fff}
+.sb-item .ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-badge{margin-left:auto;background:#ef4444;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px}
+.sb-badge.warn{background:#f59e0b}
+.sb-footer{margin-top:auto;padding:14px 10px;border-top:1px solid rgba(255,255,255,.06)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:8px}
+.sb-avatar{width:32px;height:32px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
+.sb-user-info{flex:1;min-width:0}
+.sb-user-name{font-size:11px;font-weight:700;color:#fff}
+.sb-user-role{font-size:9px;color:var(--sb-txt)}
+
+/* ── Main ── */
+.main{margin-left:var(--sb-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--w);border-bottom:1px solid var(--bd);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:16px;font-weight:800;flex:1}
+.topbar-sub{font-size:11px;color:var(--t3);font-weight:400;display:block}
+.topbar-date{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:5px;background:#f8fafc;border:1px solid var(--bd);border-radius:7px;padding:5px 10px}
+.topbtn{font-size:11px;font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer;border:1.5px solid var(--bd);background:var(--w);color:var(--t2);white-space:nowrap}
+.topbtn:hover{background:var(--bg)}
+.topbtn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.topbtn.primary:hover{background:#1d4ed8}
+
+/* ── Content ── */
+.content{padding:20px 24px;flex:1}
+
+/* ── Stat Cards ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:1000px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--w);border-radius:12px;padding:16px 18px;border:1px solid var(--bd);display:flex;align-items:center;gap:14px}
+.stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.si-blue{background:#eff6ff}.si-green{background:#f0fdf4}.si-yellow{background:#fffbeb}.si-red{background:#fef2f2}
+.stat-info{flex:1;min-width:0}
+.stat-val{font-size:20px;font-weight:800;color:var(--t);line-height:1.2}
+.stat-lbl{font-size:11px;color:var(--t2);margin-top:2px}
+.stat-sub{font-size:10px;margin-top:3px}
+.sub-ok{color:var(--green)}.sub-warn{color:var(--yellow)}.sub-danger{color:var(--red)}
+
+/* ── Progress Section ── */
+.progress-card{background:var(--w);border-radius:12px;padding:16px 20px;border:1px solid var(--bd);margin-bottom:20px}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-pct{font-size:28px;font-weight:800;color:var(--blue)}
+.progress-detail{text-align:right;font-size:11px;color:var(--t2);line-height:1.8}
+.progress-detail strong{color:var(--t);font-size:13px}
+.pbar{background:#f1f5f9;border-radius:99px;height:8px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:99px;transition:width .5s}
+.fill-ok{background:linear-gradient(90deg,#3b82f6,#2563eb)}
+.fill-warn{background:linear-gradient(90deg,#f59e0b,#d97706)}
+.fill-danger{background:linear-gradient(90deg,#ef4444,#dc2626)}
+.progress-tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.ptag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:#f8fafc;border:1px solid var(--bd);color:var(--t2)}
+.ptag-ok{background:#f0fdf4;border-color:#bbf7d0;color:#15803d}
+.ptag-warn{background:#fffbeb;border-color:#fde68a;color:#b45309}
+.ptag-danger{background:#fef2f2;border-color:#fca5a5;color:var(--red)}
+
+/* ── Two-col layout ── */
+.two-col{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start}
+@media(max-width:1100px){.two-col{grid-template-columns:1fr}}
+.col-card{background:var(--w);border-radius:12px;border:1px solid var(--bd);overflow:hidden}
+.col-card-head{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.col-card-head h3{font-size:13px;font-weight:700}
+.col-card-body{padding:14px 16px}
+
+/* ── Data Input ── */
+.input-section{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:700px){.input-section{grid-template-columns:1fr}}
+.input-group{background:#f8fafc;border-radius:9px;padding:12px}
+.ig-title{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.f{display:flex;flex-direction:column;gap:2px}
+.f label{font-size:9px;font-weight:600;color:var(--t3)}
+.f input{border:1.5px solid var(--bd);border-radius:6px;padding:6px 8px;font-size:13px;font-weight:700;color:var(--t);text-align:center;background:var(--w);width:100%}
+.f input:focus{outline:none;border-color:var(--blue)}
+.f input.calc{background:var(--blt);border-color:#bfdbfe;color:var(--blue);pointer-events:none}
+.f input.calc-g{background:#f0fdf4;border-color:#bbf7d0;color:var(--green);pointer-events:none}
+.f input.calc-r{background:#fef2f2;border-color:#fca5a5;color:var(--red);pointer-events:none}
+.f .unit{font-size:9px;color:var(--t3);text-align:center}
+.analyze-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px}
+.analyze-btn:hover{background:#1d4ed8}
+
+/* ── Post List ── */
+.post-table{width:100%;border-collapse:collapse}
+.post-table th{font-size:10px;font-weight:700;color:var(--t3);padding:8px 12px;text-align:left;border-bottom:1px solid var(--bd);background:#fafbfc}
+.post-table td{padding:10px 12px;border-bottom:1px solid #f8fafc;font-size:12px;vertical-align:middle}
+.post-table tr:hover td{background:#f8fafc;cursor:pointer}
+.post-table tr.active td{background:var(--blt)}
+.post-num{font-size:10px;font-weight:700;color:var(--t3);width:32px}
+.post-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--bd)}
+.post-dot.hot{background:#22c55e}.post-dot.warm{background:#f59e0b}.post-dot.cold{background:var(--red)}.post-dot.posted{background:var(--blue)}
+.post-theme{font-weight:600;color:var(--t)}
+.post-date{font-size:11px;color:var(--t2)}
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block}
+.b-story{background:#dbeafe;color:#1d4ed8}.b-product{background:#dcfce7;color:#15803d}
+.b-progress{background:#fef9c3;color:#a16207}.b-action{background:#f3e8ff;color:#7e22ce}.b-review{background:#f1f5f9;color:var(--t3)}
+.stage-row td{background:#f5f7fa!important;font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.3px;padding:5px 12px!important;cursor:default!important}
+
+/* ── Action Cards (right panel) ── */
+.acard{border-radius:10px;border:1.5px solid;margin-bottom:8px;overflow:hidden;background:var(--w)}
+.acard.p1{border-color:#ef4444}.acard.p2{border-color:#f59e0b}.acard.p3{border-color:#3b82f6}
+.acard-head{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid #f8fafc}
+.acard-ico{font-size:16px}.acard-title{font-size:12px;font-weight:700;flex:1}
+.acard-type{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}
+.t-ad{background:#fef9c3;color:#a16207}.t-creative{background:#e0e7ff;color:#4338ca}
+.t-organic{background:#dbeafe;color:#1d4ed8}.t-page{background:#fee2e2;color:#dc2626}.t-strategy{background:#f3e8ff;color:#7e22ce}
+.acard-body{padding:10px 13px}
+.acard-num{font-size:18px;font-weight:800;color:var(--blue);display:block}
+.acard-numlbl{font-size:10px;color:var(--t2);margin-bottom:5px;display:block}
+.acard-detail{font-size:11px;color:#334155;line-height:1.7}
+.acard-warn{font-size:10px;color:#b45309;margin-top:5px;padding:4px 8px;background:#fffbeb;border-radius:5px;border-left:2px solid #f59e0b}
+.all-ok{background:#f0fdf4;border-radius:10px;padding:12px;border:1px solid #bbf7d0}
+.all-ok p{font-size:12px;color:var(--green);font-weight:700}
+.all-ok small{font-size:10px;color:#166534}
+
+/* ── Post Detail Panel ── */
+.detail-panel{background:var(--w);border-radius:12px;border:1px solid var(--bd);overflow:hidden}
+.dp-head{padding:14px 16px;border-bottom:1px solid var(--bd);background:#fafbfc}
+.dp-num{font-size:10px;color:var(--t3);font-weight:700}
+.dp-title{font-size:14px;font-weight:800;margin-top:2px}
+.dp-date{font-size:11px;color:var(--t2);margin-top:2px}
+.dp-actions{display:flex;gap:8px;margin-top:10px}
+.dp-body{padding:14px 16px}
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:14px}
+.tab{font-size:11px;font-weight:600;padding:7px 14px;cursor:pointer;color:var(--t2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.content-blk{background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:10px}
+.content-lbl{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.copy-btn{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;cursor:pointer;border:1px solid var(--bd);background:var(--w);color:var(--t2)}
+.copy-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.content-txt{font-size:12px;color:#334155;line-height:1.8;white-space:pre-wrap}
+.img-hint{background:#fffbeb;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.img-hint strong{font-size:9px;color:#a16207;display:block;margin-bottom:3px;text-transform:uppercase}
+.img-hint p{font-size:11px;color:#713f12;line-height:1.6}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.mf label{font-size:10px;font-weight:600;color:var(--t2);display:block;margin-bottom:3px}
+.mf input{width:100%;border:1.5px solid var(--bd);border-radius:7px;padding:7px 10px;font-size:13px;font-weight:700;color:var(--t);background:#fafbfc;text-align:center}
+.mf input:focus{outline:none;border-color:var(--blue);background:var(--w)}
+.mf input.calc{background:var(--blt);border-color:#bfdbfe;color:var(--blue);pointer-events:none}
+.mf .unit{font-size:9px;color:var(--t3);text-align:center;margin-top:2px}
+.auto-suggest{font-size:11px;padding:7px 10px;border-radius:7px;margin-bottom:8px;font-weight:600}
+.as-hot{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.as-warm{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.as-cold{background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5}
+.perf-row{display:flex;gap:6px;margin-bottom:10px}
+.perf-btn{flex:1;padding:8px;border-radius:7px;border:1.5px solid;cursor:pointer;font-size:11px;font-weight:700;background:var(--w);text-align:center}
+.perf-btn.hot{border-color:#22c55e;color:#15803d}.perf-btn.hot.on{background:#15803d;color:#fff;border-color:#15803d}
+.perf-btn.warm{border-color:#f59e0b;color:#d97706}.perf-btn.warm.on{background:#d97706;color:#fff;border-color:#d97706}
+.perf-btn.cold{border-color:#ef4444;color:var(--red)}.perf-btn.cold.on{background:var(--red);color:#fff;border-color:var(--red)}
+.save-btn{width:100%;background:#15803d;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.save-btn:hover{background:#166534}
+.notes-area{width:100%;border:1.5px solid var(--bd);border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;color:var(--t);resize:vertical;min-height:60px;background:#fafbfc;margin-bottom:10px}
+.notes-area:focus{outline:none;border-color:var(--blue);background:var(--w)}
+.action-box{border-radius:8px;padding:10px 12px;border-left:3px solid;margin-top:8px}
+.action-box.hot{background:#f0fdf4;border-color:#22c55e}.action-box.hot h4{color:#15803d}
+.action-box.warm{background:#fffbeb;border-color:#f59e0b}.action-box.warm h4{color:#b45309}
+.action-box.cold{background:#fef2f2;border-color:#ef4444}.action-box.cold h4{color:#b91c1c}
+.action-box h4{font-size:10px;font-weight:700;margin-bottom:4px}
+.action-box p{font-size:11px;line-height:1.6;color:#334155}
+.mark-btn{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer}
+.mark-btn:hover{background:#1d4ed8}
+.review-box{background:#f5f3ff;border-radius:10px;padding:14px}
+.review-box h4{font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:8px}
+.review-box p{font-size:12px;color:#4c1d95;line-height:1.6}
+
+/* ── Today view ── */
+.today-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.today-stat{background:var(--w);border-radius:10px;padding:14px;border:1px solid var(--bd);text-align:center}
+.ts-num{font-size:28px;font-weight:800}
+.ts-lbl{font-size:11px;color:var(--t2);margin-top:2px}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f3f4f6}
+.task-time{font-size:12px;font-weight:700;color:var(--blue);width:40px;flex-shrink:0;padding-top:2px}
+.task-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.task-info{flex:1}
+.task-name{font-size:12px;font-weight:700;color:var(--t)}
+.task-sub{font-size:11px;color:var(--t2);margin-top:2px}
+.task-action{flex-shrink:0}
+.task-done-btn{font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;border:1.5px solid #22c55e;color:#15803d;background:var(--w)}
+.task-done-btn:hover{background:#15803d;color:#fff}
+.task-done-btn.done{background:#f0fdf4;border-color:#bbf7d0;color:#15803d;cursor:default}
+
+/* ── Setup Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.82);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--w);border-radius:16px;padding:28px;width:100%;max-width:440px}
+.modal h2{font-size:17px;font-weight:800;margin-bottom:4px}
+.modal p.sub{font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.5}
+.mg{margin-bottom:12px}
+.mg label{display:block;font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px}
+.mg input{width:100%;border:1.5px solid var(--bd);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--t)}
+.mg input:focus{outline:none;border-color:var(--blue)}
+.mg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+
+/* ── Misc ── */
+.sec-title{font-size:13px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.sec-title small{font-size:11px;color:var(--t3);font-weight:400}
+.empty-state{text-align:center;padding:40px 20px;color:var(--t3)}
+.empty-state .ico{font-size:36px;margin-bottom:10px}
+.empty-state p{font-size:12px;line-height:1.7}
+.done-perf{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px}
+.lbl-hot{background:#dcfce7;color:#15803d}.lbl-warm{background:#fef9c3;color:#a16207}.lbl-cold{background:#fee2e2;color:var(--red)}
+.toast{position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.view{display:none}.view.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- Setup Modal -->
+<div class="overlay" id="setupModal" style="display:none">
+  <div class="modal">
+    <h2>🐕 設定募資目標</h2>
+    <p class="sub">儲存後同步到雲端，所有同事看到同一份數據。</p>
+    <div class="mg"><label>募資目標金額（NT$）</label><input type="number" id="s-goal" placeholder="5000000"></div>
+    <div class="mg mg-row">
+      <div><label>開始日期</label><input type="date" id="s-start"></div>
+      <div><label>結束日期</label><input type="date" id="s-end"></div>
+    </div>
+    <div class="mg"><label>目前已募得（NT$）</label><input type="number" id="s-cur" placeholder="0"></div>
+    <button class="modal-btn" onclick="saveSetup()">儲存並開始 →</button>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🏛️</div>
+    <div class="sb-logo-name">北港義民廟 × 柴語錄</div>
+    <div class="sb-logo-sub">募資作戰系統</div>
+  </div>
+  <div class="sb-section">主要功能</div>
+  <a class="sb-item active" id="nav-overview" onclick="showView('overview')"><span class="ico">📊</span>總覽儀表板</a>
+  <a class="sb-item" id="nav-warroom" onclick="showView('warroom')"><span class="ico">⚔️</span>作戰室</a>
+  <a class="sb-item" id="nav-today" onclick="showView('today')"><span class="ico">📋</span>今日任務</a>
+  <a class="sb-item" id="nav-schedule" onclick="showView('schedule')"><span class="ico">📅</span>貼文排程</a>
+  <div class="sb-section">系統</div>
+  <a class="sb-item" onclick="openSetup()"><span class="ico">⚙️</span>活動設定</a>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">行</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">行銷團隊</div>
+        <div class="sb-user-role">Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title">
+      <span id="topbar-greeting">早安，團隊 👋</span>
+      <small class="topbar-sub">以下是募資案最新進度與今日作戰重點</small>
+    </div>
+    <div class="topbar-date">📅 <span id="topbar-date"></span></div>
+    <button class="topbtn primary" onclick="promptUpdateAmount()">💰 更新金額</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ① 總覽 View -->
+    <div class="view active" id="v-overview">
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="progress-card">
+        <div id="progress-inner"></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="sec-title">📋 今日貼文任務 <small id="today-post-count"></small></div>
+          <div class="col-card">
+            <div class="col-card-body" id="overview-posts"></div>
+          </div>
+        </div>
+        <div>
+          <div class="sec-title">⚡ 行動建議</div>
+          <div id="overview-actions">
+            <div class="empty-state"><div class="ico">⚡</div><p>進入「作戰室」填入今日數據<br>系統自動產生行動建議</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 作戰室 View -->
+    <div class="view" id="v-warroom">
+      <div class="two-col">
+        <div>
+          <div class="sec-title">📊 今日數據輸入</div>
+          <div class="col-card" style="margin-bottom:14px">
+            <div class="col-card-body">
+              <div class="input-section">
+                <div class="input-group">
+                  <div class="ig-title">💰 募資金額</div>
+                  <div class="fgrid">
+                    <div class="f"><label>今日新增</label><input type="number" id="zz-new" placeholder="0" oninput="autoCalc()"><div class="unit">NT$</div></div>
+                    <div class="f"><label>今日成交筆數</label><input type="number" id="zz-orders" placeholder="0" oninput="autoCalc()"><div class="unit">筆</div></div>
+                  </div>
+                  <div class="fgrid">
+                    <div class="f"><label>累積總金額</label><input type="number" id="zz-total" placeholder="0" oninput="autoCalc()"><div class="unit">NT$</div></div>
+                    <div class="f"><label>平均客單價</label><input type="text" id="zz-aov" class="calc" placeholder="自動"><div class="unit">自動</div></div>
+                  </div>
+                </div>
+                <div class="input-group">
+                  <div class="ig-title">👥 粉絲頁</div>
+                  <div class="fgrid">
+                    <div class="f"><label>總粉絲數</label><input type="number" id="fb-fans-total" placeholder="0"><div class="unit">人</div></div>
+                    <div class="f"><label>今日新增粉絲</label><input type="number" id="fb-fans-new" placeholder="0"><div class="unit">人</div></div>
+                  </div>
+                </div>
+                <div class="input-group">
+                  <div class="ig-title">📄 有機貼文</div>
+                  <div class="fgrid">
+                    <div class="f"><label>觸及人數</label><input type="number" id="fb-reach" placeholder="0" oninput="autoCalc()"><div class="unit">人</div></div>
+                    <div class="f"><label>互動數</label><input type="number" id="fb-inter" placeholder="0" oninput="autoCalc()"><div class="unit">次</div></div>
+                  </div>
+                  <div class="fgrid">
+                    <div class="f"><label>分享數</label><input type="number" id="fb-shares" placeholder="0"><div class="unit">次</div></div>
+                    <div class="f"><label>連結點擊</label><input type="number" id="fb-clicks" placeholder="0" oninput="autoCalc()"><div class="unit">次</div></div>
+                  </div>
+                  <div class="fgrid">
+                    <div class="f"><label>互動率（自動）</label><input type="text" id="fb-er" class="calc" placeholder="—"><div class="unit">互動÷觸及</div></div>
+                    <div class="f"><label>CTR（自動）</label><input type="text" id="fb-ctr" class="calc" placeholder="—"><div class="unit">點擊÷觸及</div></div>
+                  </div>
+                </div>
+                <div class="input-group">
+                  <div class="ig-title">📱 限動（Stories）</div>
+                  <div class="fgrid">
+                    <div class="f"><label>限動觸及</label><input type="number" id="st-reach" placeholder="0"><div class="unit">人</div></div>
+                    <div class="f"><label>限動互動</label><input type="number" id="st-inter" placeholder="0"><div class="unit">次</div></div>
+                  </div>
+                </div>
+                <div class="input-group" style="grid-column:1/-1">
+                  <div class="ig-title">📣 廣告</div>
+                  <div class="fgrid" style="grid-template-columns:repeat(4,1fr)">
+                    <div class="f"><label>花費</label><input type="number" id="ad-spend" placeholder="0"><div class="unit">NT$</div></div>
+                    <div class="f"><label>ROAS</label><input type="number" id="ad-roas" placeholder="0.0" step="0.1"><div class="unit">倍</div></div>
+                    <div class="f"><label>CPM</label><input type="number" id="ad-cpm" placeholder="0"><div class="unit">NT$/千次</div></div>
+                    <div class="f"><label>廣告CTR（後台）</label><input type="number" id="ad-ctr" placeholder="0.0" step="0.01"><div class="unit">%</div></div>
+                  </div>
+                </div>
+              </div>
+              <button class="analyze-btn" onclick="runAnalysis()">⚡ 分析所有數據 → 給我今日行動方案</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="sec-title">⚡ 今日行動方案</div>
+          <div id="wr-actions">
+            <div class="empty-state"><div class="ico">⚡</div><p>填入數據後點「分析」<br>系統自動輸出行動方案</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 今日任務 View -->
+    <div class="view" id="v-today">
+      <div class="today-stats" id="today-stats-row"></div>
+      <div class="two-col">
+        <div>
+          <div class="col-card">
+            <div class="col-card-head"><h3>📋 今日時程表</h3></div>
+            <div class="col-card-body" id="today-timeline"></div>
+          </div>
+        </div>
+        <div>
+          <div class="col-card">
+            <div class="col-card-head"><h3>⚡ 最新提醒</h3></div>
+            <div class="col-card-body" id="today-alerts"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 貼文排程 View -->
+    <div class="view" id="v-schedule">
+      <div class="two-col">
+        <div>
+          <div class="col-card">
+            <div class="col-card-head"><h3>📅 貼文排程</h3><span style="font-size:11px;color:var(--t3)">點任意貼文查看詳情</span></div>
+            <div class="col-card-body" style="padding:0">
+              <table class="post-table" id="schedule-table"></table>
+            </div>
+          </div>
+        </div>
+        <div id="schedule-detail">
+          <div class="empty-state" style="background:var(--w);border-radius:12px;border:1px solid var(--bd)">
+            <div class="ico">📝</div><p>點選左側任一貼文<br>查看文案與成效</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════ Supabase ════════════════════════════════
+const SB = supabase.createClient(
+  'https://svsbjeumhhbtdkykanph.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2c2JqZXVtaGhidGRreWthbnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMzc3NjQsImV4cCI6MjA4ODcxMzc2NH0.EZ7GH7NfvSHhsLMOch3s0YEEPE8fiNuvEjacFFObUbU'
+);
+
+// ════ State ═══════════════════════════════════
+let cfg = {goal:5000000,start:'2026-06-15',end:'2026-08-14',current:0};
+let postData = {};
+let selectedId = null;
+let activeTab = 'content';
+let localPerf = null;
+let dailySaveTimer = null;
+let lastAnalysis = [];
+const TODAY = new Date().toISOString().split('T')[0];
+
+// ════ Init ════════════════════════════════════
+async function init() {
+  // greeting + date
+  const h = new Date().getHours();
+  const greet = h<12?'早安':'h<18?\'午安\':\'晚安\'';
+  document.getElementById('topbar-greeting').textContent = (h<12?'早安':h<18?'午安':'晚安') + '，團隊 👋';
+  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
+
+  const {data:cfgRows} = await SB.from('ym_config').select('*');
+  if (cfgRows?.length) cfgRows.forEach(r=>{
+    if(r.key==='goal') cfg.goal=parseInt(r.value)||5000000;
+    if(r.key==='start') cfg.start=r.value;
+    if(r.key==='end') cfg.end=r.value;
+    if(r.key==='current') cfg.current=parseInt(r.value)||0;
+  }); else openSetup();
+
+  const {data:pRows} = await SB.from('ym_post_data').select('*');
+  if(pRows) pRows.forEach(r=>{postData[r.post_id]=r;});
+
+  const {data:daily} = await SB.from('ym_daily').select('*').eq('date',TODAY).maybeSingle();
+  if(daily) fillInputs(daily);
+
+  renderOverview();
+  renderToday();
+  renderScheduleTable();
+}
+
+// ════ View Management ═════════════════════════
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  const nav = document.getElementById('nav-'+v);
+  if(nav) nav.classList.add('active');
+}
+
+// ════ Fill Inputs ═════════════════════════════
+function fillInputs(d) {
+  const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!=0)el.value=v;};
+  s('zz-new',d.zz_new_amount);s('zz-orders',d.zz_new_orders);s('zz-total',d.zz_total);
+  s('fb-fans-total',d.fb_total_fans);s('fb-fans-new',d.fb_new_fans);
+  s('fb-reach',d.fb_reach);s('fb-inter',d.fb_interactions);
+  s('fb-shares',d.fb_shares);s('fb-clicks',d.fb_link_clicks);
+  s('st-reach',d.fb_story_reach);s('st-inter',d.fb_story_interactions);
+  s('ad-spend',d.ad_spend);s('ad-roas',d.ad_roas);s('ad-cpm',d.ad_cpm);s('ad-ctr',d.ad_ctr);
+  autoCalc();
+}
+
+// ════ Auto-Calculate ══════════════════════════
+function autoCalc() {
+  const reach=getN('fb-reach'),inter=getN('fb-inter'),clicks=getN('fb-clicks');
+  const zzNew=getN('zz-new'),zzOrds=getN('zz-orders'),zzTotal=getN('zz-total');
+  const erEl=document.getElementById('fb-er'),ctrEl=document.getElementById('fb-ctr');
+  if(reach>0){
+    const er=(inter/reach*100).toFixed(2);
+    erEl.value=er+'%';erEl.className='calc'+(parseFloat(er)>=5?' calc-g':parseFloat(er)<1?' calc-r':'');
+    const ctr=(clicks/reach*100).toFixed(2);
+    ctrEl.value=ctr+'%';ctrEl.className='calc'+(parseFloat(ctr)>=2?' calc-g':parseFloat(ctr)<0.3?' calc-r':'');
+  } else {erEl.value='';erEl.className='calc';ctrEl.value='';ctrEl.className='calc';}
+  document.getElementById('zz-aov').value=(zzOrds>0&&zzNew>0)?'NT$'+Math.round(zzNew/zzOrds).toLocaleString():'';
+  if(zzTotal>0){cfg.current=zzTotal;renderStats();}
+  clearTimeout(dailySaveTimer);dailySaveTimer=setTimeout(saveDaily,1500);
+}
+
+async function saveDaily() {
+  const zzTotal=getN('zz-total');
+  if(zzTotal>0) await SB.from('ym_config').upsert([{key:'current',value:String(zzTotal)}]);
+  await SB.from('ym_daily').upsert([{
+    date:TODAY,zz_new_amount:getN('zz-new'),zz_new_orders:getN('zz-orders'),zz_total:zzTotal,
+    fb_total_fans:getN('fb-fans-total'),fb_new_fans:getN('fb-fans-new'),
+    fb_reach:getN('fb-reach'),fb_interactions:getN('fb-inter'),fb_shares:getN('fb-shares'),fb_link_clicks:getN('fb-clicks'),
+    fb_story_reach:getN('st-reach'),fb_story_interactions:getN('st-inter'),
+    ad_spend:getN('ad-spend'),ad_roas:getN('ad-roas'),ad_cpm:getN('ad-cpm'),ad_ctr:getN('ad-ctr'),
+    updated_at:new Date().toISOString()
+  }],{onConflict:'date'});
+}
+
+// ════ KPI ═════════════════════════════════════
+function kpi() {
+  const goal=cfg.goal||5000000,cur=cfg.current||0;
+  const start=new Date(cfg.start),end=new Date(cfg.end);
+  const today=new Date();today.setHours(0,0,0,0);
+  const total=Math.max(1,Math.ceil((end-start)/86400000));
+  const elapsed=Math.max(0,Math.ceil((today-start)/86400000));
+  const remaining=Math.max(0,Math.ceil((end-today)/86400000));
+  const gap=(elapsed/total)*goal-cur;
+  const phase=elapsed===0?'launch':elapsed<=6?'week1':remaining<=3?'final3':remaining<=10?'final10':'mid';
+  return{goal,cur,pct:cur/goal,gap,remaining,elapsed,total,
+    dailyNeed:remaining>0?(goal-cur)/remaining:0,baseBudget:Math.round(goal*0.08/total),
+    isAhead:gap<-goal*0.05,isBehind:gap>goal*0.05,isFarBehind:gap>goal*0.15,phase};
+}
+
+// ════ Render Overview ═════════════════════════
+function renderOverview() {renderStats();renderProgressBar();renderOverviewPosts();if(lastAnalysis.length) renderActionsTo('overview-actions',lastAnalysis);}
+
+function renderStats() {
+  const k=kpi();
+  const pct=(k.pct*100).toFixed(1);
+  const statusTxt=k.isAhead?'✅ 超前進度':k.isFarBehind?'🚨 嚴重落後':k.isBehind?'⚠️ 略落後':'✅ 進度正常';
+  const statusCls=k.isAhead||(!k.isBehind)?'sub-ok':k.isFarBehind?'sub-danger':'sub-warn';
+  document.getElementById('stat-grid').innerHTML=`
+    <div class="stat-card"><div class="stat-icon si-blue">🎯</div><div class="stat-info"><div class="stat-val">${pct}%</div><div class="stat-lbl">募資達成率</div><div class="stat-sub ${statusCls}">${statusTxt}</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">💰</div><div class="stat-info"><div class="stat-val">NT$${(k.cur/10000).toFixed(1)}萬</div><div class="stat-lbl">目前累積募資</div><div class="stat-sub" style="color:var(--t3)">目標 NT$${(k.goal/10000).toFixed(0)}萬</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-yellow">⏳</div><div class="stat-info"><div class="stat-val">${k.remaining} 天</div><div class="stat-lbl">剩餘天數</div><div class="stat-sub" style="color:var(--t3)">每日需募 NT$${Math.round(k.dailyNeed/1000)}K</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-${k.isFarBehind?'red':'blue'}">📊</div><div class="stat-info"><div class="stat-val" style="color:var(--${k.isFarBehind?'red':'blue'})">NT$${Math.round(k.gap/10000)>0?'+'+Math.round(k.gap/10000):''}${Math.round(k.gap/10000)<=0?Math.abs(Math.round(k.gap/10000))+'萬超前':Math.round(k.gap/10000)+'萬落後'}</div><div class="stat-lbl">進度差距</div><div class="stat-sub" style="color:var(--t3)">基準廣告 NT$${k.baseBudget.toLocaleString()}/日</div></div></div>`;
+}
+
+function renderProgressBar() {
+  const k=kpi();
+  const pct=Math.min(k.pct,1);
+  const fillCls=k.gap>k.goal*0.1?'fill-danger':k.gap>0?'fill-warn':'fill-ok';
+  const phaseMap={launch:'🚀 第一天',week1:'📈 第一週',mid:'📊 中段',final10:'⚡ 最後10天',final3:'🔥 最後3天'};
+  const stag=k.gap<=0?`<span class="ptag ptag-ok">✅ 超前進度</span>`:k.gap<k.goal*0.05?`<span class="ptag ptag-warn">⚡ 略落後</span>`:`<span class="ptag ptag-danger">🚨 落後 NT$${(k.gap/10000).toFixed(0)}萬</span>`;
+  document.getElementById('progress-inner').innerHTML=`
+    <div class="progress-header">
+      <div class="progress-pct">${(pct*100).toFixed(1)}%</div>
+      <div class="progress-detail">NT$${(k.cur/10000).toFixed(1)}萬 / ${(k.goal/10000).toFixed(0)}萬<br><strong>剩 ${k.remaining} 天</strong>｜每日需募 NT$${Math.round(k.dailyNeed/1000)}K</div>
+    </div>
+    <div class="pbar"><div class="pbar-fill ${fillCls}" style="width:${(pct*100).toFixed(1)}%"></div></div>
+    <div class="progress-tags">${stag}<span class="ptag">${phaseMap[k.phase]||'📊 中段'}</span></div>`;
+}
+
+function renderOverviewPosts() {
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayPosts=POSTS.filter(p=>{if(p.isReview)return false;const d=new Date(p.date);d.setHours(0,0,0,0);return d<=today&&!postData[p.id]?.posted;}).slice(0,3);
+  const el=document.getElementById('overview-posts');
+  const count=document.getElementById('today-post-count');
+  if(!todayPosts.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3);font-size:12px">今日無待發貼文 🎉</div>';count.textContent='';return;}
+  count.textContent=`${todayPosts.length} 篇待發`;
+  const bMap={story:'b-story',product:'b-product',progress:'b-progress',action:'b-action'};
+  el.innerHTML=todayPosts.map(p=>`
+    <div class="task-item" onclick="showView('schedule');selectPost('${p.id}')">
+      <div class="task-time">${p.time||'—'}</div>
+      <div class="task-dot posted"></div>
+      <div class="task-info">
+        <div class="task-name">${p.num} ${p.theme}</div>
+        <div class="task-sub">${p.ds} <span class="badge ${bMap[p.tag]||'b-review'}">${p.tl}</span></div>
+      </div>
+      <div class="task-action"><button class="task-done-btn" onclick="event.stopPropagation();markPosted('${p.id}')">✅ 標記發文</button></div>
+    </div>`).join('');
+}
+
+// ════ Today View ══════════════════════════════
+function renderToday() {
+  const today=new Date();today.setHours(0,0,0,0);
+  const allPosts=POSTS.filter(p=>!p.isReview);
+  const todayPosts=allPosts.filter(p=>{const d=new Date(p.date);d.setHours(0,0,0,0);return d<=today;});
+  const pending=todayPosts.filter(p=>!postData[p.id]?.posted);
+  const done=todayPosts.filter(p=>!!postData[p.id]?.posted);
+  document.getElementById('today-stats-row').innerHTML=`
+    <div class="today-stat"><div class="ts-num" style="color:var(--blue)">${todayPosts.length}</div><div class="ts-lbl">今日任務</div></div>
+    <div class="today-stat"><div class="ts-num" style="color:var(--yellow)">${pending.length}</div><div class="ts-lbl">待完成</div></div>
+    <div class="today-stat"><div class="ts-num" style="color:var(--green)">${done.length}</div><div class="ts-lbl">已完成</div></div>`;
+  const bMap={story:'b-story',product:'b-product',progress:'b-progress',action:'b-action'};
+  const tl=document.getElementById('today-timeline');
+  if(!todayPosts.length){tl.innerHTML='<div style="text-align:center;padding:30px;color:var(--t3);font-size:12px">今日無排程貼文</div>';return;}
+  tl.innerHTML=todayPosts.sort((a,b)=>(a.time||'23:59').localeCompare(b.time||'23:59')).map(p=>{
+    const isPosted=!!postData[p.id]?.posted;
+    return`<div class="task-item">
+      <div class="task-time">${p.time||'—'}</div>
+      <div class="task-dot ${isPosted?'hot':'posted'}"></div>
+      <div class="task-info">
+        <div class="task-name">${p.num} ${p.theme}</div>
+        <div class="task-sub">${p.ds} <span class="badge ${bMap[p.tag]||'b-review'}">${p.tl}</span></div>
+      </div>
+      <div class="task-action">
+        ${isPosted?'<span class="task-done-btn done">✓ 已發文</span>':`<button class="task-done-btn" onclick="markPosted('${p.id}')">✅ 標記發文</button>`}
+      </div>
+    </div>`;
+  }).join('');
+  // Alerts
+  const k=kpi();
+  let alerts=[];
+  if(k.isFarBehind) alerts.push({cls:'danger',txt:`落後 NT$${(k.gap/10000).toFixed(0)}萬，需要啟動廣告加碼`});
+  if(k.isBehind&&!k.isFarBehind) alerts.push({cls:'warn',txt:`進度略落後，建議今天廣告預算加碼至 NT$${Math.round(k.baseBudget*1.5).toLocaleString()}`});
+  if(pending.length) alerts.push({cls:'info',txt:`今日還有 ${pending.length} 篇貼文待發布`});
+  document.getElementById('today-alerts').innerHTML=alerts.length?alerts.map(a=>`
+    <div style="padding:10px 12px;border-radius:8px;margin-bottom:8px;font-size:12px;background:${a.cls==='danger'?'#fef2f2':a.cls==='warn'?'#fffbeb':'#eff6ff'};border-left:3px solid ${a.cls==='danger'?'#ef4444':a.cls==='warn'?'#f59e0b':'#3b82f6'};color:${a.cls==='danger'?'#b91c1c':a.cls==='warn'?'#b45309':'#1d4ed8'}">${a.txt}</div>`).join('')
+    :'<div style="text-align:center;padding:20px;color:var(--t3);font-size:12px">✅ 目前無緊急提醒</div>';
+}
+
+// ════ Schedule Table ══════════════════════════
+function renderScheduleTable() {
+  const stageNames={s1:'🔵 認知期',s2:'🟢 信任期',s3:'🟡 慾望期',s4:'🟣 行動期',s5:'🔴 緊迫期'};
+  const bMap={story:'b-story',product:'b-product',progress:'b-progress',action:'b-action'};
+  let lastStage='',html=`<thead><tr><th>編號</th><th>主題</th><th>日期</th><th>時間</th><th>類型</th><th>狀態</th></tr></thead><tbody>`;
+  POSTS.forEach(p=>{
+    if(p.stage!==lastStage&&stageNames[p.stage]){html+=`<tr class="stage-row"><td colspan="6">${stageNames[p.stage]}</td></tr>`;lastStage=p.stage;}
+    if(p.isReview){html+=`<tr class="stage-row" style="background:#f5f3ff!important;cursor:pointer" onclick="selectPost('${p.id}')"><td colspan="2" style="color:#7c3aed">📋 ${p.theme}</td><td style="color:#7c3aed">${p.ds}</td><td colspan="3" style="color:#8b5cf6">複查節點</td></tr>`;return;}
+    const pd=postData[p.id]||{};
+    const perf=pd.performance||'pending';
+    const isPosted=!!pd.posted;
+    const dotCls=isPosted?(perf!=='pending'?perf:'posted'):'';
+    const perfLabel=isPosted?({hot:'🔥 熱',warm:'⚡ 普通',cold:'❄️ 冷'}[perf]||'已發文'):'未發文';
+    const perfColor=isPosted?(perf==='hot'?'#15803d':perf==='warm'?'#a16207':perf==='cold'?'#b91c1c':'#2563eb'):'var(--t3)';
+    html+=`<tr onclick="selectPost('${p.id}')"${selectedId===p.id?' class="active"':''}>
+      <td><span class="post-num">${p.num}</span></td>
+      <td><span class="post-dot ${dotCls}"></span><span class="post-theme">${p.theme}</span></td>
+      <td class="post-date">${p.ds}</td>
+      <td>${p.time||'—'}</td>
+      <td><span class="badge ${bMap[p.tag]||'b-review'}">${p.tl}</span></td>
+      <td style="font-size:11px;font-weight:600;color:${perfColor}">${perfLabel}</td>
+    </tr>`;
+  });
+  html+='</tbody>';
+  document.getElementById('schedule-table').innerHTML=html;
+}
+
+// ════ Post Detail ═════════════════════════════
+function selectPost(id) {
+  selectedId=id; activeTab='content'; localPerf=null;
+  if(document.getElementById('v-schedule').classList.contains('active')) {
+    renderScheduleTable(); renderDetail();
+  }
+}
+
+function renderDetail() {
+  const p=POSTS.find(x=>x.id===selectedId); if(!p) return;
+  const pd=postData[selectedId]||{};
+  const el=document.getElementById('schedule-detail');
+  if(p.isReview){el.innerHTML=`<div class="detail-panel"><div class="dp-body"><div class="review-box"><h4>📋 ${p.theme}（${p.ds}）</h4><p>${p.task}</p></div></div></div>`;return;}
+  const isPosted=!!pd.posted;
+  el.innerHTML=`<div class="detail-panel">
+    <div class="dp-head">
+      <div class="dp-num">${p.num}</div>
+      <div class="dp-title">${p.theme}</div>
+      <div class="dp-date">${p.ds}${p.time?' · '+p.time:''}</div>
+      <div class="dp-actions">
+        ${isPosted?'<span style="font-size:11px;color:var(--green);font-weight:700">✓ 已發文</span>':`<button class="mark-btn" onclick="markPosted('${p.id}')">✅ 標記已發文</button>`}
+      </div>
+    </div>
+    <div class="dp-body">
+      <div class="tabs">
+        <div class="tab${activeTab==='content'?' active':''}" onclick="switchTab('content')">貼文內容</div>
+        <div class="tab${activeTab==='metrics'?' active':''}" onclick="switchTab('metrics')">成效數據</div>
+      </div>
+      <div id="tab-body">${activeTab==='content'?renderContent(p):renderMetrics(p,pd)}</div>
+    </div>
+  </div>`;
+}
+
+function renderContent(p){
+  return`<div class="content-blk"><div class="content-lbl">貼文文案 <button class="copy-btn" onclick="copyText('pc-txt')">複製</button></div><div class="content-txt" id="pc-txt">${p.content||''}</div></div><div class="img-hint"><strong>🖼️ 圖片方向</strong><p>${p.img||''}</p></div>`;
+}
+
+function renderMetrics(p,pd){
+  const perf=localPerf||pd.performance||'pending';
+  const reach=pd.reach||0,inter=pd.interactions||0,clicks=pd.link_clicks||0;
+  const erTxt=reach>0?(inter/reach*100).toFixed(2)+'%':'';
+  const ctrTxt=reach>0?(clicks/reach*100).toFixed(2)+'%':'';
+  const suggest=reach>0?(inter/reach>=0.05||clicks/reach>=0.02?'hot':inter/reach>=0.01?'warm':'cold'):null;
+  const suggestHtml=suggest&&suggest!==perf?`<div class="auto-suggest as-${suggest}">💡 系統建議：${{hot:'🔥 熱',warm:'⚡ 普通',cold:'❄️ 冷'}[suggest]}（互動率 ${erTxt}，CTR ${ctrTxt}）</div>`:'';
+  return`<div class="m-grid">
+    <div class="mf"><label>觸及人數</label><input type="number" id="pm-reach" value="${pd.reach||''}" placeholder="0" oninput="pmCalc()"><div class="unit">人</div></div>
+    <div class="mf"><label>互動數</label><input type="number" id="pm-inter" value="${pd.interactions||''}" placeholder="0" oninput="pmCalc()"><div class="unit">次</div></div>
+    <div class="mf"><label>互動率（自動）</label><input type="text" id="pm-er" class="calc" value="${erTxt}" placeholder="—"><div class="unit">自動</div></div>
+    <div class="mf"><label>分享數</label><input type="number" id="pm-shares" value="${pd.shares||''}" placeholder="0"><div class="unit">次</div></div>
+    <div class="mf"><label>連結點擊</label><input type="number" id="pm-clicks" value="${pd.link_clicks||''}" placeholder="0" oninput="pmCalc()"><div class="unit">次</div></div>
+    <div class="mf"><label>CTR（自動）</label><input type="text" id="pm-ctr" class="calc" value="${ctrTxt}" placeholder="—"><div class="unit">自動</div></div>
+    <div class="mf"><label>影片觀看數</label><input type="number" id="pm-views" value="${pd.video_views||''}" placeholder="0"><div class="unit">次</div></div>
+    <div class="mf"><label>影片完播率</label><input type="number" id="pm-completion" value="${pd.video_completion_rate||''}" placeholder="0" step="0.1"><div class="unit">%</div></div>
+    <div class="mf"><label>募資成交筆數</label><input type="number" id="pm-orders" value="${pd.zz_orders||''}" placeholder="0"><div class="unit">筆</div></div>
+  </div>
+  ${suggestHtml}
+  <div style="font-size:10px;font-weight:700;color:var(--t2);margin-bottom:6px">這篇成效</div>
+  <div class="perf-row">
+    <button class="perf-btn hot${perf==='hot'?' on':''}" onclick="setPerf('hot')">🔥 熱</button>
+    <button class="perf-btn warm${perf==='warm'?' on':''}" onclick="setPerf('warm')">⚡ 普通</button>
+    <button class="perf-btn cold${perf==='cold'?' on':''}" onclick="setPerf('cold')">❄️ 冷</button>
+  </div>
+  <div style="font-size:10px;font-weight:700;color:var(--t2);margin-bottom:4px">備註</div>
+  <textarea class="notes-area" id="pm-note" placeholder="今天留言反應、廟方動作、廣告審核狀況...">${pd.note||''}</textarea>
+  <button class="save-btn" onclick="savePostMetrics('${p.id}')">💾 儲存成效數據</button>
+  ${perf!=='pending'&&p.actions?.[perf]?`<div class="action-box ${perf}"><h4>根據成效，下一步：</h4><p>${p.actions[perf]}</p></div>`:''}`;
+}
+
+function pmCalc(){
+  const reach=parseFloat(document.getElementById('pm-reach')?.value)||0;
+  const inter=parseFloat(document.getElementById('pm-inter')?.value)||0;
+  const clicks=parseFloat(document.getElementById('pm-clicks')?.value)||0;
+  if(reach>0){document.getElementById('pm-er').value=(inter/reach*100).toFixed(2)+'%';document.getElementById('pm-ctr').value=(clicks/reach*100).toFixed(2)+'%';}
+}
+
+function setPerf(perf){
+  localPerf=perf;
+  document.querySelectorAll('.perf-btn').forEach(b=>{const bp=b.classList.contains('hot')?'hot':b.classList.contains('warm')?'warm':'cold';b.classList.toggle('on',bp===perf);});
+  const p=POSTS.find(x=>x.id===selectedId);
+  document.querySelector('.action-box')?.remove();
+  if(p?.actions?.[perf]){const box=document.createElement('div');box.className=`action-box ${perf}`;box.innerHTML=`<h4>根據成效，下一步：</h4><p>${p.actions[perf]}</p>`;document.querySelector('.save-btn')?.insertAdjacentElement('afterend',box);}
+}
+
+async function savePostMetrics(postId){
+  const row={post_id:postId,posted:postData[postId]?.posted||false,posted_at:postData[postId]?.posted_at||null,
+    reach:getPM('pm-reach'),interactions:getPM('pm-inter'),shares:getPM('pm-shares'),link_clicks:getPM('pm-clicks'),
+    video_views:getPM('pm-views'),video_completion_rate:getPM('pm-completion'),zz_orders:getPM('pm-orders'),
+    performance:localPerf||postData[postId]?.performance||'pending',
+    note:document.getElementById('pm-note')?.value||'',updated_at:new Date().toISOString()};
+  const{error}=await SB.from('ym_post_data').upsert([row],{onConflict:'post_id'});
+  if(!error){postData[postId]={...postData[postId],...row};localPerf=null;showToast('✓ 儲存成功');renderScheduleTable();renderDetail();}
+  else showToast('❌ 儲存失敗：'+error.message);
+}
+
+async function markPosted(id){
+  const row={post_id:id,posted:true,posted_at:new Date().toISOString(),performance:postData[id]?.performance||'pending',note:postData[id]?.note||'',updated_at:new Date().toISOString()};
+  await SB.from('ym_post_data').upsert([row],{onConflict:'post_id'});
+  postData[id]={...postData[id],...row};showToast('✓ 已標記發文');
+  renderOverviewPosts();renderToday();renderScheduleTable();if(selectedId===id)renderDetail();
+}
+
+function switchTab(tab){activeTab=tab;localPerf=null;renderDetail();}
+
+// ════ Analysis Engine ═════════════════════════
+function runAnalysis(){
+  saveDaily();
+  const reach=getN('fb-reach'),inter=getN('fb-inter'),shares=getN('fb-shares'),clicks=getN('fb-clicks');
+  const zzNew=getN('zz-new'),zzOrds=getN('zz-orders'),adROAS=getN('ad-roas'),adCPM=getN('ad-cpm'),adCTR=getN('ad-ctr');
+  const k=kpi();
+  const er=reach>0?inter/reach:0,shareR=reach>0?shares/reach:0,convR=clicks>0?zzOrds/clicks:0;
+  const acts=[],WARN='⚠️ 建議執行前，請人工確認素材品質與頁面轉換率';
+  if(adROAS>0){
+    if(adROAS>=4&&k.isBehind) acts.push({p:1,type:'ad',icon:'🚀',title:'廣告全力放量',detail:`ROAS ${adROAS}x，落後 NT$${(k.gap/10000).toFixed(0)}萬。`,number:`NT$${Math.round(k.baseBudget*3).toLocaleString()}`,numlbl:'建議廣告預算',warn:WARN});
+    else if(adROAS>=4&&k.isAhead) acts.push({p:3,type:'ad',icon:'💰',title:'廣告可降低',detail:`ROAS ${adROAS}x 但進度超前。降低預算，留給最後10天。`,number:`NT$${Math.round(k.baseBudget*0.4).toLocaleString()}`,numlbl:'建議廣告預算（降）'});
+    else if(adROAS>=2&&adROAS<4) acts.push({p:2,type:'ad',icon:'📊',title:`ROAS正常，${k.isBehind?'加碼補落後':'維持預算'}`,detail:`ROAS ${adROAS}x${k.isBehind?`，落後 NT$${(k.gap/10000).toFixed(0)}萬`:'，進度正常'}。`,number:`NT$${Math.round(k.baseBudget*(k.isBehind?1.8:1)).toLocaleString()}`,numlbl:'建議廣告預算'});
+    else if(adROAS<1.5) acts.push({p:1,type:'ad',icon:'🛑',title:'廣告虧錢，立刻暫停',detail:`ROAS ${adROAS}x，低於1.5在虧錢。暫停廣告，換素材或受眾再開。`,number:'NT$0',numlbl:'今日廣告預算（暫停）'});
+  } else if(k.isFarBehind) acts.push({p:1,type:'ad',icon:'⚠️',title:'嚴重落後，需要啟動廣告',detail:`落後 NT$${(k.gap/10000).toFixed(0)}萬。`,number:`NT$${Math.round(k.baseBudget*2).toLocaleString()}`,numlbl:'建議最低廣告預算',warn:WARN});
+  if(adCTR>0){
+    if(adCTR<0.8) acts.push({p:1,type:'creative',icon:'🎨',title:'廣告素材需要換',detail:`廣告CTR ${adCTR}%，低於0.8%是素材疲勞。換封面圖或改文案開頭。`});
+    else if(adCTR>=3) acts.push({p:2,type:'creative',icon:'✨',title:'高效素材，複製出變體',detail:`廣告CTR ${adCTR}%，超過3%很強。複製3-5個變體換受眾繼續跑。`});
+  }
+  if(reach>100){
+    if(er<0.01) acts.push({p:2,type:'organic',icon:'📝',title:'有機互動太低，換內容方向',detail:`互動率 ${(er*100).toFixed(2)}%，低於1%。換方向：真實故事、問句開頭、具體細節。`});
+    else if(er>=0.05) acts.push({p:3,type:'organic',icon:'🔥',title:'有機很好，複製這個風格',detail:`互動率 ${(er*100).toFixed(2)}%，超過5%很強。下一篇照這個語氣走。`});
+  }
+  if(reach>100&&shareR>=0.02) acts.push({p:2,type:'organic',icon:'🔄',title:'分享率高，拿來下廣告',detail:`分享率 ${(shareR*100).toFixed(2)}%，用這篇做廣告素材。`});
+  if(clicks>50){
+    if(convR<0.02) acts.push({p:1,type:'page',icon:'🔧',title:'頁面轉換太低',detail:`點擊 ${clicks} 次只成交 ${zzOrds} 筆（${(convR*100).toFixed(1)}%）。問題在頁面：① 降低入門方案 ② 強化回饋說明 ③ 加入支持人數。`});
+    else if(convR>=0.1) acts.push({p:3,type:'page',icon:'✅',title:'頁面轉換率很好',detail:`轉換率 ${(convR*100).toFixed(1)}%，策略是增加流量，不是改頁面。`});
+  }
+  if(adCPM>200) acts.push({p:2,type:'ad',icon:'🎯',title:'CPM偏高，受眾可能飽和',detail:`CPM NT$${adCPM}，超200是飽和訊號。換新受眾或開廣泛受眾。`});
+  if(zzNew>0&&k.dailyNeed>0){
+    const ratio=zzNew/k.dailyNeed;
+    if(ratio<0.5) acts.push({p:2,type:'strategy',icon:'📉',title:`今日達成率 ${Math.round(ratio*100)}%`,detail:`需募 NT$${Math.round(k.dailyNeed/1000)}K，實際 NT$${Math.round(zzNew/1000)}K。連續3天低於50%啟動應急。`});
+    else if(ratio>=1.5) acts.push({p:3,type:'strategy',icon:'📈',title:`今日超額 ${Math.round(ratio*100)}%`,detail:`廣告可略降，省給後段。`});
+  }
+  if(k.isFarBehind&&k.remaining>14) acts.push({p:2,type:'strategy',icon:'🐕',title:'聯繫柴語錄提前出動',detail:`落後超15%，還有 ${k.remaining} 天，柴語錄提前介入效果最好。`});
+  acts.sort((a,b)=>a.p-b.p);
+  lastAnalysis=acts;
+  renderActionsTo('wr-actions',acts);
+  renderActionsTo('overview-actions',acts);
+  showToast('✓ 分析完成');
+}
+
+function renderActionsTo(targetId,acts){
+  const el=document.getElementById(targetId); if(!el) return;
+  const typeLabel={ad:'廣告',creative:'素材',organic:'有機',page:'頁面',strategy:'策略'};
+  const typeCls={ad:'t-ad',creative:'t-creative',organic:'t-organic',page:'t-page',strategy:'t-strategy'};
+  if(!acts.length){el.innerHTML=`<div class="all-ok"><p>✅ 目前沒有緊急行動</p><small>所有參數正常。照排程發文，明天再看數字。</small></div>`;return;}
+  el.innerHTML=acts.map(a=>{const bCls=a.p===1?'p1':a.p===2?'p2':'p3';
+    return`<div class="acard ${bCls}"><div class="acard-head"><div class="acard-ico">${a.icon}</div><div class="acard-title">${a.title}</div><span class="acard-type ${typeCls[a.type]||''}">${typeLabel[a.type]||a.type}</span></div><div class="acard-body">${a.number?`<span class="acard-num">${a.number}</span><span class="acard-numlbl">${a.numlbl}</span>`:''}<div class="acard-detail">${a.detail}</div>${a.warn?`<div class="acard-warn">${a.warn}</div>`:''}</div></div>`;
+  }).join('');
+}
+
+// ════ Setup ═══════════════════════════════════
+function openSetup(){
+  document.getElementById('s-goal').value=cfg.goal;document.getElementById('s-start').value=cfg.start;
+  document.getElementById('s-end').value=cfg.end;document.getElementById('s-cur').value=cfg.current;
+  document.getElementById('setupModal').style.display='flex';
+}
+async function saveSetup(){
+  cfg.goal=parseInt(document.getElementById('s-goal').value)||5000000;
+  cfg.start=document.getElementById('s-start').value;cfg.end=document.getElementById('s-end').value;
+  cfg.current=parseInt(document.getElementById('s-cur').value)||0;
+  await SB.from('ym_config').upsert([{key:'goal',value:String(cfg.goal)},{key:'start',value:cfg.start},{key:'end',value:cfg.end},{key:'current',value:String(cfg.current)}]);
+  document.getElementById('setupModal').style.display='none';
+  renderOverview();showToast('✓ 設定已儲存');
+}
+function promptUpdateAmount(){
+  const v=prompt('輸入目前累積募資金額（NT$）：',cfg.current||0);
+  if(v!==null){cfg.current=parseInt(v)||0;document.getElementById('zz-total').value=cfg.current;SB.from('ym_config').upsert([{key:'current',value:String(cfg.current)}]);renderStats();renderProgressBar();}
+}
+
+// ════ Utils ═══════════════════════════════════
+const getN=id=>parseFloat(document.getElementById(id)?.value)||0;
+const getPM=id=>parseFloat(document.getElementById(id)?.value)||0;
+function copyText(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText||el.textContent).then(()=>showToast('✓ 已複製'));}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ════ Post Data ═══════════════════════════════
+const POSTS=[
+  {id:'p1',num:'P1',date:'2026-06-15',ds:'6/15(一)',time:'10:00',theme:'開幕×義犬將軍傳奇',tag:'story',tl:'故事',stage:'s1',task:'早上10:00發出開幕主影片，募資連結置頂留言。',content:`239年前，有一隻狗陪著108位義民走到最後。\n\n今天，北港義民廟 × 柴語錄 義犬守護計畫，正式開始。\n\n這次，換我們守護牠的廟。\n\n👉 嘖嘖連結：[連結]\n\n#北港義民廟 #義犬將軍 #柴語錄 #嘖嘖募資`,img:'義犬將軍插圖（柴語錄聯名版）+ 廟宇夜景，暖黃金色調，文字疊加「今天開始」',actions:{hot:'廣告加碼150%。置頂這篇，用作主要廣告素材。',warm:'廣告維持原預算。補一則限動加募資連結。',cold:'換素材：補發15秒版短影片。P2提前至明天發。'}},
+  {id:'p2',num:'P2',date:'2026-06-17',ds:'6/17(三)',time:'20:30',theme:'義犬將軍故事深挖',tag:'story',tl:'故事',stage:'s1',task:'晚上20:30發出義犬故事深挖貼文。',content:`閉上眼睛，想像那個夜晚。\n\n清乾隆52年，北港，深夜。所有人都睡著了。\n只有一隻狗，沒有睡著。\n\n牠聞到了危險。\n即使被下毒，即使知道代價——\n牠還是爬到主人身邊，叫醒了他們。\n\n239年後，牠仍然在那裡守護著。\n\n#義犬將軍 #台灣信仰 #寵物守護`,img:'夜晚、一隻狗的側影望向廟宇燈光。柔和暖光，紀錄片質感',actions:{hot:'P1和P2都下廣告，A/B測試哪篇ROAS更高。',warm:'不下廣告。限動補義犬金句圖卡。',cold:'兩篇連續偏冷。立刻聯繫柴語錄，請提前第一波互動。'}},
+  {id:'p3',num:'P3',date:'2026-06-19',ds:'6/19(五)',time:'20:00',theme:'柴語錄聯名宣告',tag:'story',tl:'聯名',stage:'s1',task:'晚上20:00發出柴語錄聯名宣告，確認柴語錄同步發文。',content:`71萬個把寵物當家人的人，和一間239年的廟，走在一起了。\n\n柴語錄 × 北港義民廟\n義犬守護計畫正式啟動。\n\n👉 嘖嘖連結：[連結]\n\n#柴語錄 #北港義民廟 #義犬守護`,img:'柴語錄聯名御守正式亮相。雙LOGO。精緻高質感',actions:{hot:'最大流量節點！廣告加碼200%。',warm:'廣告加碼50%測3天。',cold:'聯繫柴語錄：限動再補一則。'}},
+  {id:'p4',num:'P4',date:'2026-06-20',ds:'6/20(六)',time:'20:00',theme:'御守產品深度介紹',tag:'product',tl:'商品',stage:'s1',task:'晚上20:00發出御守產品深度介紹。',content:`在義民廟開光的御守。\n\n讓義犬將軍，跟著你的寵物出門。\n\n每一個都由廟方於義犬將軍前祈福加持。\n每一個都有限量編號。\n\n👉 嘖嘖連結：[連結]\n#義犬將軍 #開光御守 #寵物守護`,img:'御守產品特寫，手持御守，背景是廟宇香火。高質感暖色調',actions:{hot:'廣告打「有養寵物的人」受眾。',warm:'不下廣告。限動補御守實拍近照+開箱。',cold:'補一則限動：御守實拍+廟方背書短片。'}},
+  {id:'r1',num:'R1',date:'2026-06-21',ds:'6/21',theme:'第一週複查',tag:'review',tl:'複查',stage:'sg',isReview:true,task:'第一週複查：對照募資金額是否達到目標的10%，決定第二週策略。'},
+  {id:'p5',num:'P5',date:'2026-06-21',ds:'6/21(日)',time:'12:00',theme:'第一週感謝+進度報告',tag:'progress',tl:'進度',stage:'s2',task:'中午12:00發出第一週感謝+進度報告。',content:`上線第7天了。\n\n謝謝讓義犬將軍認識了你的每一隻寵物。\n\n目前已有[X]個家庭，讓義犬將軍替牠們守護。\n\n👉 現在加入：[連結]\n#北港義民廟 #義犬將軍 #嘖嘖募資`,img:'進度條設計圖卡，溫暖色系，加入部分支持者留言截圖',actions:{hot:'截圖做成限動。留言置頂募資連結。',warm:'限動加入謝謝支持者姓名。',cold:'數字不漂亮不要硬說。補主委30秒短片道謝。'}},
+  {id:'p6',num:'P6',date:'2026-06-24',ds:'6/24(二)',time:'12:30',theme:'環保金爐×義犬使命',tag:'progress',tl:'資訊',stage:'s2',task:'中午12:30發出環保金爐說明文。',content:`義犬將軍守了239年。\n但牠守護的廟，金爐老了。\n\n設備使用多年，逐漸老化。\n廟方希望透過這次建設，讓信仰環境更安全、更友善。\n\n👉 加入守護：[連結]\n#環保金爐 #北港義民廟 #信仰傳承`,img:'金爐特寫（老舊感）對比想像中的新金爐',actions:{hot:'下廣告：打「關心廟宇環境」受眾。',warm:'不下廣告，維持原節奏。',cold:'資訊型冷掉正常，繼續下一篇。'}},
+  {id:'p7',num:'P7',date:'2026-06-26',ds:'6/26(四)',time:'21:00',theme:'贊助者故事（真實留言）',tag:'story',tl:'情感',stage:'s2',task:'晚上21:00發出真實贊助者故事文，必須是真實的留言且已取得同意。',content:`（一位支持者的留言，已獲同意分享）\n\n「我的柴犬上個月離開了。\n看到義犬將軍的故事，我就買了一個御守，\n放在牠以前睡覺的地方。\n讓義犬將軍繼續陪著牠。」\n\n#義犬將軍 #寵物守護 #北港義民廟`,img:'黑色背景，白字顯示留言最後一句。旁邊放柴犬插圖',actions:{hot:'廣告打「已失去寵物」和「有養寵物」受眾。',warm:'限動截最感人的一則留言做成圖卡。',cold:'故事不夠真實。找真實支持者公開說話重新發。'}},
+  {id:'p8',num:'P8',date:'2026-06-28',ds:'6/28(六)',time:'20:30',theme:'平安燈儀式感',tag:'story',tl:'情感',stage:'s2',task:'晚上20:30發出平安燈儀式感貼文。',content:`想像這個畫面——\n\n北港義民廟，夜晚。\n燈火溫暖，香煙輕輕升起。\n有一盞燈，上面寫著你寵物的名字。\n\n在北港，有一盞燈，今晚為你的寵物亮著。\n\n👉 為你的寵物點燈：[連結]\n#平安燈 #義犬將軍 #寵物祈福`,img:'廟內夜晚平安燈實拍，溫暖橘黃色調',actions:{hot:'廣告換成這篇，打「信仰文化」受眾。',warm:'發限動：今晚廟內平安燈實拍。',cold:'補廟內夜景限動，不再推這篇。'}},
+  {id:'p9',num:'P9',date:'2026-06-30',ds:'6/30(二)',time:'12:00',theme:'中段進度+柴語錄聯合',tag:'progress',tl:'進度',stage:'s2',task:'中午12:00義民廟發進度報告，晚上20:00柴語錄同步發聯名提醒。',content:`募資第16天。\n\n[X]隻寵物的名字，義犬將軍已經記住了。\n\n——今天，柴語錄也發文了。\n我們一起，為義犬將軍的廟守護。\n\n👉 加入守護：[連結]\n#北港義民廟 #柴語錄 #義犬守護`,img:'進度條圖卡，數字加大。下方放柴語錄聯名logo',actions:{hot:'廣告全面加碼，進入放量期。',warm:'廣告維持不增不減。',cold:'聯繫柴語錄提前第三波至7月初。'}},
+  {id:'r2',num:'R2',date:'2026-07-07',ds:'7/7',theme:'第三週複查',tag:'review',tl:'複查',stage:'sg',isReview:true,task:'第三週複查：對照募資金額是否達到目標的25%。'},
+  {id:'p10',num:'P10',date:'2026-07-11',ds:'7/11(六)',time:'20:30',theme:'繪馬+寵物名字儀式',tag:'product',tl:'儀式',stage:'s3',task:'晚上20:30發出繪馬+名字儀式感貼文，邀請留言留下寵物名字。',content:`義民廟的繪馬牆上，\n每一塊都有一隻寵物的名字。\n\n留言告訴我，牠叫什麼名字？\n我們會把所有名字，帶到義犬將軍面前。\n\n#繪馬 #寵物守護 #義犬將軍`,img:'廟內繪馬牆實拍，可見各種寵物名字',actions:{hot:'收集所有名字做成感謝圖。廣告素材換成這篇。',warm:'限動：「你的名字，寫在繪馬上」互動問答。',cold:'補一則限動：廟內實際繪馬牆照片。'}},
+  {id:'p11',num:'P11',date:'2026-07-14',ds:'7/14(二)',time:'12:30',theme:'不信宗教也可以支持',tag:'story',tl:'理性',stage:'s3',task:'中午12:30發出「不信宗教也可以支持」理性說服文。',content:`你可能想說：\n「我不燒香，不拜拜，廟宇募資跟我有什麼關係？」\n\n說得對。義犬將軍不需要你信神。\n\n牠只需要你記得一件事——\n有些東西，值得被守護。不管你信不信。\n\n#北港義民廟 #信仰與否 #文化傳承`,img:'簡潔黑白設計，大字排版「你不需要信神，但你可以相信這隻狗的故事」',actions:{hot:'廣告測試「非信仰族群」新受眾。',warm:'不下廣告，繼續原節奏。',cold:'理性文冷掉正常。P12改用更感性的高客單訴求。'}},
+  {id:'p12',num:'P12',date:'2026-07-17',ds:'7/17(五)',time:'20:00',theme:'家族傳承組（高客單）',tag:'product',tl:'高客單',stage:'s3',task:'晚上20:00發出家族傳承組高客單方案文。',content:`你家不只一隻寵物？\n\n家族傳承組，義犬將軍全部守護。\n最多6隻，全家一起守護。\n\nNT$6,666 → [連結]\n#家族守護 #義犬將軍 #北港義民廟`,img:'全家福溫馨照片（示意）+ 多隻寵物插圖。「家族傳承組」金色質感',actions:{hot:'廣告打「多寵物家庭」。',warm:'留言補充高客單方案詳情。不下廣告。',cold:'高客單篇冷掉正常，不調整。重點在倒數期。'}},
+  {id:'r3',num:'R3',date:'2026-07-22',ds:'7/22',theme:'中場複查（第30天）',tag:'review',tl:'複查',stage:'sg',isReview:true,task:'中場複查（第30天）：對照募資金額是否達到目標的50%。最關鍵節點。'},
+  {id:'p13',num:'P13',date:'2026-07-22',ds:'7/22(三)',time:'12:00',theme:'倒數30天警示',tag:'action',tl:'倒數',stage:'s4',task:'中午12:00發出倒數30天警示貼文，從今天開始每天更新限動倒數圖卡。',content:`倒數 30 天。\n\n30天後，募資截止。\n這次可以讓義犬將軍認識你寵物的機會，就不再有了。\n\n現在加入，只需要3分鐘。\n\n👉 [連結]\n#倒數30天 #義犬將軍`,img:'大字倒數「30」設計感圖卡，深色背景，義犬將軍插圖',actions:{hot:'廣告下「倒數30天」素材。每天限動更新倒數圖卡。',warm:'發限動倒數圖卡，帶募資連結。',cold:'倒數30天太早感受不強。維持每天限動，等最後10天加壓。'}},
+  {id:'p14',num:'P14',date:'2026-07-26',ds:'7/26(日)',time:'21:00',theme:'感謝文+情感高峰',tag:'story',tl:'情感',stage:'s4',task:'晚上21:00發出情感高峰感謝文。',content:`有一件事我們一直想說——\n\n謝謝你點進來看這個故事。\n謝謝你讓更多人知道義犬將軍。\n\n不管你有沒有支持，\n你已經是這件事的一部分。\n\n👉 還沒加入的：[連結]\n#義犬將軍 #北港義民廟 #謝謝你`,img:'夕陽下的義民廟，溫暖橘色光。配短Reels：廟內主委說一句感謝的話',actions:{hot:'廣告素材換成這篇，打猶豫族群。',warm:'不下廣告。繼續原節奏。',cold:'週日情感文冷很少見。補主委現身短片。'}},
+  {id:'p15',num:'P15',date:'2026-07-30',ds:'7/30(四)',time:'12:00',theme:'進度衝刺（缺口可見化）',tag:'action',tl:'衝刺',stage:'s4',task:'中午12:00發出進度衝刺文，具體說出缺口數字。',content:`我們離目標還差 NT$[X] 元。就差這一點。\n\n說起來不多——平均下來，就是[X]份寵物守護組。\n\n你願意嗎？\n\n👉 現在加入：[連結]\n#北港義民廟 #倒數 #最後衝刺`,img:'缺口可視化設計圖卡。進度條快滿但還差一點點',actions:{hot:'廣告加碼打「關注但未購買」再行銷受眾。',warm:'更新限動：即時進度條。',cold:'改成具體比喻：「差X件御守就達標」。'}},
+  {id:'p16',num:'P16',date:'2026-08-03',ds:'8/3(一)',time:'20:30',theme:'最後12天警示',tag:'action',tl:'緊迫',stage:'s4',task:'晚上20:30發出最後12天警示文，從今天開始每天限動連發不能停。',content:`你已經看了這個故事好幾次了，對嗎？\n\n12天後，這次聯名守護回饋就會截止。\n\n如果你的寵物還沒被義犬將軍認識，現在還來得及。\n\n👉 [連結]\n#最後12天 #義犬將軍`,img:'倒數「12」大字圖卡，義犬將軍Q版表情',actions:{hot:'廣告全力加碼。每天限動連發，不能停。',warm:'每天限動更新倒數。廣告素材換成前段最強篇重跑。',cold:'補緊急加碼：主委親自錄影求援。換廣告受眾完全重設。'}},
+  {id:'p17',num:'P17',date:'2026-08-07',ds:'8/7(五)',time:'19:30',theme:'柴語錄最後呼籲',tag:'action',tl:'聯名衝刺',stage:'s5',task:'19:30義民廟發短Reels，20:30柴語錄正式推，21:00義民廟限動轉發+連結。三步驟缺一不可。',content:`71萬個寵物家庭，很多人已經讓義犬將軍認識了自己的寵物。\n\n如果你是柴語錄的粉絲，還沒有行動的——\n這是最後一次機會。義犬將軍等了239年。再等你7天，可以嗎？\n\n👉 [連結]\n#柴語錄 #義犬將軍 #最後7天`,img:'柴語錄聯名最強插圖，義犬將軍全身像，莊嚴溫柔。「最後7天」疊字',actions:{hot:'廣告全力，預算加碼至300%。',warm:'廣告加碼至150%。確認募資連結兩邊粉絲頁都置頂。',cold:'確認柴語錄是否真的有發文。補一則義民廟限動轉貼柴語錄。'}},
+  {id:'p18',num:'P18',date:'2026-08-10',ds:'8/10(一)',time:'20:30',theme:'倒數4天',tag:'action',tl:'緊迫',stage:'s5',task:'晚上20:30發出倒數4天貼文，每天早晚各一則限動，不能停。',content:`[X]隻寵物。[X]個家庭，選擇讓義犬將軍守護。\n\n4天後，這個數字就停止增加了。\n\n你的寵物，還沒在裡面。\n\n現在加入，只需要3分鐘。\n\n👉 [連結]\n#倒數4天 #義犬將軍`,img:'倒數「4」大字，義犬將軍插圖',actions:{hot:'廣告全力，最後的放量。每天早晚各一則限動。',warm:'每天限動不能停。廣告素材換成P17柴語錄那篇。',cold:'冷掉可能是已買的都買了。專注在最後感謝情緒。'}},
+  {id:'p19',num:'P19',date:'2026-08-12',ds:'8/12(三)',time:'12:00',theme:'倒數48小時',tag:'action',tl:'最終衝刺',stage:'s5',task:'中午12:00發正式貼文，晚上20:30發限動提醒，之後每3小時發一則限動。',content:`48小時後，募資截止。\n\n這次可以把寵物名字留在義民廟的機會，就會結束了。\n\n你的寵物，現在還可以讓義犬將軍認識。\n\n👉 [連結]\n#倒數48小時 #最後機會`,img:'極簡設計：黑底，白字「48」，下方義犬將軍小icon',actions:{hot:'廣告最後衝刺不設上限。每3小時發一則限動。',warm:'限動繼續發。廣告維持。',cold:'不要再花大錢推廣告。準備P20感謝文，收好尾巴。'}},
+  {id:'r4',num:'R4',date:'2026-08-14',ds:'8/14',theme:'結案複查',tag:'review',tl:'複查',stage:'sg',isReview:true,task:'結案複查：整理最終金額、廣告ROI、最強素材清單，為下一個案子準備。'},
+  {id:'p20',num:'P20',date:'2026-08-14',ds:'8/14(五)',time:'21:00',theme:'募資結束感謝文',tag:'story',tl:'收尾',stage:'s5',task:'白天10:00催最後一波，15:00再催一次，晚上21:00正式感謝。',content:`60天了。募資今天正式結束。\n\n謝謝每一個讓義犬將軍認識了自己寵物的人。\n謝謝每一個分享了這個故事的人。\n謝謝每一個只是點進來看了看的人。\n\n你們讓一隻239年前的狗，今天依然被人記得。\n\n#北港義民廟 #謝謝你 #義犬將軍`,img:'廟內全景，黎明或夕陽時刻，溫暖光線',actions:{hot:'截取最感人留言做成下次募資素材。整理支持者名單。',warm:'廟方在留言親自道謝。分享達成截圖。',cold:'後續出貨和兌現承諾才是最重要的。'}}
+];
+
+init();
+</script>
+</body>
+</html>
