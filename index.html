@@ -138,6 +138,46 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 .all-ok p{font-size:12px;color:var(--green);font-weight:700}
 .all-ok small{font-size:10px;color:#166534}
 
+/* ── 硬指令步驟 ── */
+.cmd-steps{margin-top:8px;border-top:1px solid rgba(0,0,0,.06);padding-top:8px}
+.cmd-steps-title{font-size:9px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.cmd-step{display:flex;align-items:flex-start;gap:7px;margin-bottom:4px}
+.cmd-step-num{width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.cmd-step-num.urgent{background:var(--red)}
+.cmd-step-txt{font-size:11px;color:#1e293b;line-height:1.5;flex:1}
+.cmd-copy-inline{font-size:9px;padding:1px 6px;border-radius:3px;cursor:pointer;border:1px solid var(--bd);background:var(--w);color:var(--t2);margin-left:5px;vertical-align:middle}
+.cmd-copy-inline:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ── 複製素材區塊 ── */
+.copy-block{background:#f8fafc;border-radius:8px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--bd)}
+.copy-block-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.copy-block-label{font-size:9px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.4px}
+.copy-block-btn{font-size:10px;font-weight:700;padding:3px 10px;border-radius:5px;cursor:pointer;border:1.5px solid var(--blue);background:var(--w);color:var(--blue);white-space:nowrap}
+.copy-block-btn:hover{background:var(--blue);color:#fff}
+.copy-block-txt{font-size:12px;color:#334155;line-height:1.7;white-space:pre-wrap}
+
+/* ── 每日收尾清單 ── */
+.checklist-card{background:var(--w);border-radius:12px;border:1px solid var(--bd);margin-bottom:16px;overflow:hidden}
+.checklist-head{padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#fef9c3,#fffbeb)}
+.checklist-head h3{font-size:13px;font-weight:800;color:#92400e}
+.checklist-progress{font-size:11px;font-weight:700;color:#b45309}
+.checklist-body{padding:8px 16px 14px}
+.chk-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f8fafc}
+.chk-item:last-child{border-bottom:none}
+.chk-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--bd);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--w)}
+.chk-box.checked{background:#15803d;border-color:#15803d}
+.chk-box.checked::after{content:'✓';color:#fff;font-size:12px;font-weight:800}
+.chk-label{flex:1;font-size:12px;font-weight:600;color:var(--t)}
+.chk-label.checked{text-decoration:line-through;color:var(--t3)}
+.chk-sub{font-size:10px;color:var(--t3)}
+.tomorrow-cmds{margin-top:14px;background:#f0f3f8;border-radius:9px;padding:12px 14px;border:1px solid #e2e8f0}
+.tomorrow-cmds h4{font-size:11px;font-weight:800;color:var(--blue);margin-bottom:8px}
+.tomorrow-cmd-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;font-size:11px;color:#334155;line-height:1.5}
+.tomorrow-cmd-item::before{content:'→';color:var(--blue);font-weight:700;flex-shrink:0}
+.checklist-done-btn{width:100%;background:#15803d;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;margin-top:12px}
+.checklist-done-btn:hover{background:#166534}
+.checklist-done-btn:disabled{background:#bbf7d0;color:#166534;cursor:default}
+
 /* ── Post Detail Panel ── */
 .detail-panel{background:var(--w);border-radius:12px;border:1px solid var(--bd);overflow:hidden}
 .dp-head{padding:14px 16px;border-bottom:1px solid var(--bd);background:#fafbfc}
@@ -519,6 +559,30 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
     <!-- ③ 今日任務 View -->
     <div class="view" id="v-today">
       <div class="today-stats" id="today-stats-row"></div>
+
+      <!-- 每日收尾清單 -->
+      <div class="checklist-card" id="checklist-card">
+        <div class="checklist-head">
+          <div>
+            <h3>✅ 今天結束前，確認這6件事</h3>
+            <div style="font-size:10px;color:#92400e;margin-top:2px">每天睡前打完才能收工</div>
+          </div>
+          <div class="checklist-progress" id="chk-progress">0 / 6</div>
+        </div>
+        <div class="checklist-body">
+          <div id="chk-items">
+            <!-- 由 JS 渲染 -->
+          </div>
+          <div id="tomorrow-cmds-box" style="display:none">
+            <div class="tomorrow-cmds">
+              <h4>📋 明天的行動清單（根據今日數據自動生成）</h4>
+              <div id="tomorrow-cmds-list"></div>
+            </div>
+          </div>
+          <button class="checklist-done-btn" id="chk-done-btn" onclick="finishDay()">🌙 確認收工，生成明日清單</button>
+        </div>
+      </div>
+
       <div class="two-col">
         <div>
           <div class="col-card">
@@ -600,6 +664,112 @@ let dailySaveTimer = null;
 let lastAnalysis = [];
 const TODAY = new Date().toISOString().split('T')[0];
 
+// ════ 每日收尾清單 ════════════════════════════
+const CHK_ITEMS = [
+  {id:'chk_post',      label:'今日貼文發了嗎？',     sub:'按計畫時間發出'},
+  {id:'chk_topcomment',label:'置頂留言放了嗎？',     sub:'嘖嘖連結置頂在留言第一則'},
+  {id:'chk_story',     label:'限動發了嗎？',         sub:'至少1則，帶募資連結'},
+  {id:'chk_ad',        label:'廣告有開嗎？',         sub:'確認廣告後台今日有投放'},
+  {id:'chk_amount',    label:'金額有更新嗎？',       sub:'點「更新金額」填入今日累積'},
+  {id:'chk_tomorrow',  label:'明天任務有確認嗎？',   sub:'看貼文排程，確認明天幾點發'},
+];
+let chkState = {};
+
+function renderChecklist(){
+  const el=document.getElementById('chk-items'); if(!el) return;
+  el.innerHTML = CHK_ITEMS.map(item=>{
+    const checked = !!chkState[item.id];
+    return`<div class="chk-item">
+      <div class="chk-box${checked?' checked':''}" onclick="toggleChk('${item.id}')"></div>
+      <div style="flex:1">
+        <div class="chk-label${checked?' checked':''}">${item.label}</div>
+        <div class="chk-sub">${item.sub}</div>
+      </div>
+    </div>`;
+  }).join('');
+  const done = Object.values(chkState).filter(Boolean).length;
+  document.getElementById('chk-progress').textContent = `${done} / ${CHK_ITEMS.length}`;
+  const btn = document.getElementById('chk-done-btn');
+  if(done === CHK_ITEMS.length){
+    btn.textContent='🌙 全部完成！生成明日清單';
+    btn.disabled=false;
+  } else {
+    btn.textContent=`🌙 確認收工（還差 ${CHK_ITEMS.length-done} 項）`;
+    btn.disabled=false;
+  }
+}
+
+function toggleChk(id){
+  chkState[id] = !chkState[id];
+  saveChecklist();
+  renderChecklist();
+}
+
+async function saveChecklist(){
+  const row = {date:TODAY, updated_at:new Date().toISOString()};
+  CHK_ITEMS.forEach(item=>{ row[item.id] = !!chkState[item.id]; });
+  await SB.from('ym_checklist').upsert([row],{onConflict:'date'});
+}
+
+async function loadChecklist(){
+  const {data} = await SB.from('ym_checklist').select('*').eq('date',TODAY).maybeSingle();
+  if(data){
+    CHK_ITEMS.forEach(item=>{ chkState[item.id] = !!data[item.id]; });
+    if(data.tomorrow_cmds){
+      try{
+        const cmds = JSON.parse(data.tomorrow_cmds);
+        showTomorrowCmds(cmds);
+      }catch(e){}
+    }
+  }
+  renderChecklist();
+}
+
+function generateTomorrowCmds(){
+  const cmds = [];
+  const k = kpi();
+  // 從今日分析提取 P1/P2 優先指令
+  lastAnalysis.filter(a=>a.p<=2).forEach(a=>{
+    if(a.steps?.length){
+      cmds.push(`【${a.title}】${a.steps[0]}`);
+    }
+  });
+  // 補標準每日必做
+  const todayPosts = POSTS.filter(p=>{
+    if(p.isReview) return false;
+    const d=new Date(p.date); d.setHours(0,0,0,0);
+    const tmr=new Date(); tmr.setDate(tmr.getDate()+1); tmr.setHours(0,0,0,0);
+    return d.getTime()===tmr.getTime();
+  });
+  if(todayPosts.length){
+    todayPosts.forEach(p=>cmds.push(`${p.time||'—'} 發文：${p.num} ${p.theme}（記得置頂留言補連結）`));
+  }
+  if(k.isBehind) cmds.push(`更新金額後確認進度差距，若仍落後 NT$${(k.gap/10000).toFixed(0)}萬 要啟動應急廣告`);
+  cmds.push('10:00 進系統填入今日數據，點「分析」看行動方案');
+  cmds.push('晚上睡前再過一遍今日收尾清單');
+  return cmds.length ? cmds : ['照排程正常發文','10:00 填入今日數據，點分析'];
+}
+
+function showTomorrowCmds(cmds){
+  const box = document.getElementById('tomorrow-cmds-box');
+  const list = document.getElementById('tomorrow-cmds-list');
+  if(!box||!list) return;
+  list.innerHTML = cmds.map(c=>`<div class="tomorrow-cmd-item">${c}</div>`).join('');
+  box.style.display='block';
+}
+
+async function finishDay(){
+  const cmds = generateTomorrowCmds();
+  showTomorrowCmds(cmds);
+  // 儲存明日清單到 Supabase
+  const row = {date:TODAY, tomorrow_cmds:JSON.stringify(cmds), updated_at:new Date().toISOString()};
+  CHK_ITEMS.forEach(item=>{ row[item.id] = !!chkState[item.id]; });
+  await SB.from('ym_checklist').upsert([row],{onConflict:'date'});
+  showToast('✓ 收工完成！明日清單已生成');
+  document.getElementById('chk-done-btn').textContent='✅ 已收工';
+  document.getElementById('chk-done-btn').disabled=true;
+}
+
 // ════ Init ════════════════════════════════════
 async function init() {
   // greeting + date
@@ -644,6 +814,7 @@ async function init() {
   renderOverview();
   renderToday();
   renderScheduleTable();
+  loadChecklist();
 }
 
 // ════ View Management ═════════════════════════
@@ -880,7 +1051,27 @@ function renderDetail() {
 }
 
 function renderContent(p){
-  return`<div class="content-blk"><div class="content-lbl">貼文文案 <button class="copy-btn" onclick="copyText('pc-txt')">複製</button></div><div class="content-txt" id="pc-txt">${p.content||''}</div></div><div class="img-hint"><strong>🖼️ 圖片方向</strong><p>${p.img||''}</p></div>`;
+  const zz = cfg.url||'[嘖嘖連結]';
+  const topCmt = p.topComment ? p.topComment.replace(/\[連結\]/g, zz) : `👉 義犬守護計畫募資連結：${zz}\n\n📌 本文置頂留言 | 點進去支持義犬將軍 🐕`;
+  const storyTxt = p.storyText || `📱 限動文字：\n${p.theme}\n\n👉 募資連結在 bio 或留言置頂\n${zz}`;
+  const dmReply = p.dmReply || `感謝你的私訊！🙏\n\n募資連結在這裡：${zz}\n\n有任何問題都可以繼續問我們 😊\n北港義民廟 × 柴語錄團隊`;
+  const templeNote = p.templeNote || `【今日貼文提醒】\n\n貼文主題：${p.theme}\n預定時間：${p.time||'—'}\n\n廟方待辦：\n□ 拍攝素材（見圖片方向說明）\n□ 確認貼文內容正確\n□ 發文後通知行銷團隊\n□ 留言區有問題請截圖回傳`;
+
+  const blocks = [
+    {id:'pc-txt',   label:'📝 貼文文案',   txt: (p.content||'').replace(/\[連結\]/g, zz)},
+    {id:'pc-top',   label:'📌 置頂留言',   txt: topCmt},
+    {id:'pc-story', label:'📱 限動文字',   txt: storyTxt},
+    {id:'pc-dm',    label:'💬 私訊回覆範本', txt: dmReply},
+    {id:'pc-temple',label:'🏛️ 廟方提醒訊息', txt: templeNote},
+  ];
+  return blocks.map(b=>`
+    <div class="copy-block">
+      <div class="copy-block-head">
+        <span class="copy-block-label">${b.label}</span>
+        <button class="copy-block-btn" onclick="copyText('${b.id}')">📋 一鍵複製</button>
+      </div>
+      <div class="copy-block-txt" id="${b.id}">${b.txt}</div>
+    </div>`).join('')+`<div class="img-hint"><strong>🖼️ 圖片方向</strong><p>${p.img||''}</p></div>`;
 }
 
 function renderMetrics(p,pd){
@@ -994,45 +1185,56 @@ function runAnalysis(){
     if (adROAS >= tROAS * 1.3 && k.isBehind) {
       const suggest = Math.min(Math.round(k.baseBudget * 3), maxBudget || 999999);
       acts.push({p:1,type:'ad',icon:'🚀',title:'廣告全力放量',
-        detail:`ROAS ${adROAS}x（目標 ${tROAS}x），且落後 NT$${(k.gap/10000).toFixed(0)}萬。高ROI時刻，建議加碼。`,
-        number:`NT$${suggest.toLocaleString()}`,numlbl:`今日建議廣告預算${budgetCap}`,warn:WARN});
+        detail:`ROAS ${adROAS}x（目標 ${tROAS}x），且落後 NT$${(k.gap/10000).toFixed(0)}萬。`,
+        number:`NT$${suggest.toLocaleString()}`,numlbl:`今日建議廣告預算${budgetCap}`,
+        steps:[`打開 FB 廣告後台，今日預算調高到 NT$${suggest.toLocaleString()}`,`確認廣告組合中使用最強素材（互動率最高的那篇）`,`20:30 回來看 CTR 是否維持 >${tCTRad}%`,`若 ROAS 仍 >${tROAS}x，明天繼續維持預算`],
+        warn:WARN});
     } else if (adROAS >= tROAS && k.isAhead) {
       const suggest = Math.round(k.baseBudget * 0.5);
-      acts.push({p:3,type:'ad',icon:'💰',title:'廣告可降低，超前可省錢',
+      acts.push({p:3,type:'ad',icon:'💰',title:'廣告可降低，進度超前省預算',
         detail:`ROAS ${adROAS}x 且進度超前。降低預算，留給最後10天衝刺。`,
-        number:`NT$${suggest.toLocaleString()}`,numlbl:'今日建議廣告預算（降）'});
+        number:`NT$${suggest.toLocaleString()}`,numlbl:'今日建議廣告預算（調降）',
+        steps:[`廣告後台把今日預算調降到 NT$${suggest.toLocaleString()}`,`省下的預算記錄備用，留給最後10天`,`明天10:00 確認募資進度是否仍超前`]});
     } else if (adROAS >= tROAS * 0.7 && adROAS < tROAS * 1.3) {
       const mult = k.isBehind ? 1.5 : 1.0;
       const suggest = Math.min(Math.round(k.baseBudget * mult), maxBudget || 999999);
       acts.push({p:2,type:'ad',icon:'📊',title:`ROAS接近目標，${k.isBehind?'加碼補落後':'維持預算'}`,
         detail:`ROAS ${adROAS}x（目標 ${tROAS}x）${k.isBehind?`，落後 NT$${(k.gap/10000).toFixed(0)}萬`:'，進度正常'}。`,
-        number:`NT$${suggest.toLocaleString()}`,numlbl:`今日建議廣告預算${budgetCap}`});
+        number:`NT$${suggest.toLocaleString()}`,numlbl:`今日建議廣告預算${budgetCap}`,
+        steps:[`廣告後台把今日預算設為 NT$${suggest.toLocaleString()}`,`觀察今天受眾表現，CPM若超過 NT$${tCPM} 要換受眾`,`明天10:00 對比今明兩天 ROAS 是否有改善`]});
     } else if (adROAS < tROAS * 0.5) {
       acts.push({p:1,type:'ad',icon:'🛑',title:'廣告嚴重虧損，立刻暫停',
-        detail:`ROAS ${adROAS}x，遠低於目標 ${tROAS}x（不到一半）。廣告在虧錢，暫停後換素材或受眾再開。`,
-        number:'NT$0',numlbl:'今日廣告預算（暫停）'});
+        detail:`ROAS ${adROAS}x，遠低於目標 ${tROAS}x。廣告在燒錢，必須暫停。`,
+        number:'NT$0',numlbl:'今日廣告預算（立即暫停）',
+        steps:['現在打開 FB 廣告後台，暫停所有廣告組合','截圖今日數據存檔','準備3張新素材：① 義犬將軍特寫 ② 支持者留言截圖 ③ 廟內香火實拍','明天換素材重新開啟，初始預算設 NT$500 測試']});
     } else if (adROAS < tROAS * 0.7) {
       acts.push({p:2,type:'ad',icon:'⚠️',title:'ROAS低於目標，需要調整',
-        detail:`ROAS ${adROAS}x，低於目標 ${tROAS}x。建議：① 換廣告素材 ② 調整受眾 ③ 檢查嘖嘖頁面轉換。`});
+        detail:`ROAS ${adROAS}x，低於目標 ${tROAS}x。`,
+        steps:['今天不加碼，維持最低預算','準備1張新封面圖素材（義犬將軍正面特寫）','明天A/B測試：舊素材 vs 新素材各跑一天','後天10:00 比較兩者 CTR 和 ROAS']});
     }
   } else if (k.isFarBehind) {
     const suggest = Math.min(Math.round(k.baseBudget * 2), maxBudget || 999999);
-    acts.push({p:1,type:'ad',icon:'⚠️',title:'嚴重落後，需要啟動廣告',
-      detail:`落後 NT$${(k.gap/10000).toFixed(0)}萬（超15%目標），尚未填廣告數據。建議今天啟動廣告。`,
-      number:`NT$${suggest.toLocaleString()}`,numlbl:'建議最低廣告預算',warn:WARN});
+    acts.push({p:1,type:'ad',icon:'⚠️',title:'嚴重落後，必須今天啟動廣告',
+      detail:`落後 NT$${(k.gap/10000).toFixed(0)}萬（超15%目標），還沒有廣告數據。`,
+      number:`NT$${suggest.toLocaleString()}`,numlbl:'今天最低廣告預算',
+      steps:['打開 FB 廣告管理員，新增廣告系列','目標選「流量」，導向嘖嘖頁面',`今日預算設 NT$${suggest.toLocaleString()}`,'受眾：台灣 25-45 歲，興趣：寵物、信仰、廟宇','素材先用互動率最高的那篇貼文截圖','今晚20:00 回來看 CPM 和初始 CTR'],
+      warn:WARN});
   }
 
   // ── 2. 廣告素材 CTR（vs 目標）──
   if (adCTR > 0) {
     if (adCTR < tCTRad * 0.5)
-      acts.push({p:1,type:'creative',icon:'🎨',title:'廣告素材需要換',
-        detail:`廣告CTR ${adCTR}%，遠低於目標 ${tCTRad}%。換封面圖（試試義犬將軍特寫）或改文案開頭（疑問句開頭）。`});
+      acts.push({p:1,type:'creative',icon:'🎨',title:'廣告素材需要立刻換',
+        detail:`廣告CTR ${adCTR}%，遠低於目標 ${tCTRad}%。素材已死，繼續燒只是浪費。`,
+        steps:['現在暫停目前廣告組合','準備新封面圖：義犬將軍單獨特寫，文字疊加「239年守護」','文案開頭改為問句：「你的寵物，有沒有人在守護？」','今天內上傳新素材，明天重新開啟廣告']});
     else if (adCTR < tCTRad)
-      acts.push({p:2,type:'creative',icon:'🔧',title:'廣告CTR略低於目標',
-        detail:`廣告CTR ${adCTR}%，目標 ${tCTRad}%。可以A/B測試不同封面圖，找出更吸眼的版本。`});
+      acts.push({p:2,type:'creative',icon:'🔧',title:'廣告CTR略低，做A/B測試',
+        detail:`廣告CTR ${adCTR}%，目標 ${tCTRad}%。`,
+        steps:['複製目前廣告組合，做一個變體','變體只改封面圖，其他不變','兩個版本各跑2天','後天對比 CTR，留下高的那個']});
     else if (adCTR >= tCTRad * 2)
-      acts.push({p:2,type:'creative',icon:'✨',title:'高效素材！複製出變體',
-        detail:`廣告CTR ${adCTR}%，是目標的 ${(adCTR/tCTRad).toFixed(1)} 倍。複製3-5個變體換受眾繼續跑。`});
+      acts.push({p:2,type:'creative',icon:'✨',title:'高效素材！馬上複製出多個變體',
+        detail:`廣告CTR ${adCTR}%，是目標的 ${(adCTR/tCTRad).toFixed(1)} 倍。這張素材有效，要最大化它。`,
+        steps:['複製這個廣告組合3-5份','每份換一個受眾（寵物主、廟宇信眾、文化愛好者）','全部設相同預算同時跑','3天後看哪個受眾 ROAS 最高，集中預算']});
   }
 
   // ── 3. 有機觸及（vs 目標）──
@@ -1040,68 +1242,80 @@ function runAnalysis(){
     const reachRatio = reach / tReach;
     if (reachRatio < 0.5)
       acts.push({p:2,type:'organic',icon:'📉',title:'有機觸及嚴重不足',
-        detail:`今日觸及 ${reach.toLocaleString()} 人，目標 ${tReach.toLocaleString()} 人（只達到 ${Math.round(reachRatio*100)}%）。考慮提高發文頻率或在尖峰時段發文。`});
+        detail:`今日觸及 ${reach.toLocaleString()} 人，目標 ${tReach.toLocaleString()} 人（${Math.round(reachRatio*100)}%）。`,
+        steps:['今天再發一篇補充貼文（限動也算）','發文時間改到 20:30（FB 台灣尖峰）','在留言區置頂募資連結（如果還沒放）',`若觸及連續3天低於 ${Math.round(tReach*0.5).toLocaleString()}，改用廣告推流量`]});
     else if (reachRatio >= 1.5)
-      acts.push({p:3,type:'organic',icon:'📈',title:'有機觸及超標',
-        detail:`今日觸及 ${reach.toLocaleString()} 人，超過目標 ${Math.round((reachRatio-1)*100)}%。記下這篇的發文時間和格式。`});
+      acts.push({p:3,type:'organic',icon:'📈',title:'有機觸及超標，記錄這篇格式',
+        detail:`今日觸及 ${reach.toLocaleString()} 人，超目標 ${Math.round((reachRatio-1)*100)}%。`,
+        steps:['截圖這篇的發文時間、格式、開頭句','存到「高效素材清單」','複製這篇的格式結構用在下一篇','考慮用這篇下廣告，有機動能強代表受眾喜歡']});
   }
 
   // ── 4. 有機互動率（vs 目標）──
   if (reach > 100) {
     const erPct = (er * 100).toFixed(2);
     if (er < tER * 0.5)
-      acts.push({p:2,type:'organic',icon:'📝',title:'有機互動嚴重低於目標',
-        detail:`互動率 ${erPct}%，目標 ${cfg.fb_target_er}%（只達到 ${Math.round(er/tER*100)}%）。換內容方向：真實故事、問句開頭、具體細節。`});
+      acts.push({p:2,type:'organic',icon:'📝',title:'互動嚴重低於目標，換內容方向',
+        detail:`互動率 ${erPct}%，目標 ${cfg.fb_target_er}%。`,
+        steps:['今天不要再補推這篇','下一篇改用：真實故事 + 問句開頭（「你有沒有...」）','在留言區主動留一句話引發回應','明天觀察新貼文互動率是否改善']});
     else if (er < tER)
-      acts.push({p:2,type:'organic',icon:'⚠️',title:'互動率低於目標',
-        detail:`互動率 ${erPct}%，目標 ${cfg.fb_target_er}%。下一篇試試互動型貼文：留言抽獎、問句邀請回應。`});
+      acts.push({p:2,type:'organic',icon:'⚠️',title:'互動率略低，加互動設計',
+        detail:`互動率 ${erPct}%，目標 ${cfg.fb_target_er}%。`,
+        steps:['現在在這篇留言區補一句問句邀請互動','下一篇結尾加：「留言告訴我你的寵物名字」','若下篇互動率仍低，考慮留言抽獎活動']});
     else if (er >= tER * 1.5)
-      acts.push({p:3,type:'organic',icon:'🔥',title:'互動率大幅超標！',
-        detail:`互動率 ${erPct}%，是目標的 ${(er/tER).toFixed(1)} 倍。把這篇拿來下廣告，有機動能×廣告=最強效果。`});
+      acts.push({p:3,type:'organic',icon:'🔥',title:'互動率大幅超標！立刻拿來下廣告',
+        detail:`互動率 ${erPct}%，是目標的 ${(er/tER).toFixed(1)} 倍。`,
+        steps:['現在就用這篇文章建立廣告推廣貼文','受眾先設「廣泛」讓 FB 自動找相似受眾','預算設 NT$500 測試3天','有機動能強 × 廣告 = 最高 ROAS']});
   }
 
   // ── 5. 有機CTR（vs 目標）──
   if (reach > 100 && clicks > 0) {
-    const ctrPct = (er * 100).toFixed(2); // reuse
     const organicCTR = clicks / reach;
     if (organicCTR < tCTR * 0.5)
-      acts.push({p:2,type:'organic',icon:'🔗',title:'連結點擊率太低',
-        detail:`有機CTR ${(organicCTR*100).toFixed(2)}%，目標 ${cfg.fb_target_ctr}%。嘖嘖連結是否放在留言置頂？文案裡有沒有明確CTA？`});
+      acts.push({p:2,type:'organic',icon:'🔗',title:'連結點擊率太低，檢查CTA',
+        detail:`有機CTR ${(organicCTR*100).toFixed(2)}%，目標 ${cfg.fb_target_ctr}%。`,
+        steps:['現在確認：留言第一則是否置頂了嘖嘖連結？','確認文案最後一行有明確CTA（「👉 立刻守護：[連結]」）','若兩個都有，下一篇試試在貼文中段也放一次連結','記錄：CTR 低通常是 CTA 不夠明確或連結太難找']});
   }
 
   // ── 6. 分享率（病毒潛力）──
   if (reach > 100 && shareR >= 0.02)
-    acts.push({p:2,type:'organic',icon:'🔄',title:'分享率高，拿來下廣告',
-      detail:`分享率 ${(shareR*100).toFixed(2)}%，有機傳播力強。用這篇做廣告素材，有機動能×廣告=最強組合。`});
+    acts.push({p:2,type:'organic',icon:'🔄',title:'分享率高！立刻用這篇下廣告',
+      detail:`分享率 ${(shareR*100).toFixed(2)}%，有病毒傳播潛力。`,
+      steps:['用這篇貼文建立「推廣貼文」廣告','受眾選廣泛，讓系統自動找相似受眾','預算 NT$500 起，測試3天','高分享率 × 廣告 = 最低 CPM 組合']});
 
   // ── 7. 嘖嘖頁面轉換率（vs 目標）──
   if (clicks > 30) {
     const convPct = (convR * 100).toFixed(1);
     if (convR < tConv * 0.4)
-      acts.push({p:1,type:'page',icon:'🔧',title:'嘖嘖頁面轉換嚴重不足',
-        detail:`點擊 ${clicks} 次只成交 ${zzOrds} 筆（轉換率 ${convPct}%，目標 ${cfg.zz_target_conv}%）。問題在頁面不在廣告：① 降低入門方案 ② 強化回饋說明 ③ 加入已支持人數。`});
+      acts.push({p:1,type:'page',icon:'🔧',title:'嘖嘖頁面轉換嚴重不足，問題在頁面',
+        detail:`點擊 ${clicks} 次只成交 ${zzOrds} 筆（轉換率 ${convPct}%，目標 ${cfg.zz_target_conv}%）。廣告沒問題，是頁面在漏人。`,
+        steps:['現在打開嘖嘖頁面，從頭讀一遍','確認：入門方案是否 ≤NT$500？（建議加一個低門檻方案）','確認：已支持人數是否顯示？（社會認同很重要）','確認：回饋描述是否具體？（「開光御守」比「精美禮品」強）','今天內修改頁面，明天看轉換率是否改善']});
     else if (convR < tConv)
-      acts.push({p:2,type:'page',icon:'⚠️',title:'頁面轉換率低於目標',
-        detail:`轉換率 ${convPct}%，目標 ${cfg.zz_target_conv}%。檢查嘖嘖頁面：標題是否清楚？入門方案是否吸引人？`});
+      acts.push({p:2,type:'page',icon:'⚠️',title:'頁面轉換率低於目標，優化描述',
+        detail:`轉換率 ${convPct}%，目標 ${cfg.zz_target_conv}%。`,
+        steps:['檢查嘖嘖頁面標題：是否包含「義犬將軍」+「守護」關鍵字','確認第一段前50字就說清楚回饋是什麼','加入1-2則真實支持者留言截圖','明天再看轉換率是否改善']});
     else if (convR >= tConv * 1.5)
-      acts.push({p:3,type:'page',icon:'✅',title:'頁面轉換率超標！',
-        detail:`轉換率 ${convPct}%，超過目標 ${Math.round((convR/tConv-1)*100)}%。頁面很強，現在最大化流量就對了。`});
+      acts.push({p:3,type:'page',icon:'✅',title:'頁面轉換率超標！現在最大化流量',
+        detail:`轉換率 ${convPct}%，超過目標 ${Math.round((convR/tConv-1)*100)}%。頁面很強，流量決定一切。`,
+        steps:['廣告預算今天提升 50%，把更多人導進頁面','確認廣告組合都有指向嘖嘖連結','在所有有機貼文留言置頂嘖嘖連結']});
   }
 
   // ── 8. 客單價（vs 目標）──
   if (aov > 0 && tAOV > 0) {
     if (aov < tAOV * 0.7)
-      acts.push({p:2,type:'strategy',icon:'💸',title:'客單價低於目標',
-        detail:`平均客單價 NT$${Math.round(aov).toLocaleString()}，目標 NT$${tAOV.toLocaleString()}。推廣組合方案或家族傳承組，拉高客單。`});
+      acts.push({p:2,type:'strategy',icon:'💸',title:'客單價低於目標，推高價方案',
+        detail:`平均客單價 NT$${Math.round(aov).toLocaleString()}，目標 NT$${tAOV.toLocaleString()}。`,
+        steps:['今天在貼文留言區主動推薦「家族傳承組 NT$6,666」','下一篇貼文主題改成：「為什麼要守護全家的寵物」','在限動加入高客單方案的直接連結']});
     else if (aov >= tAOV * 1.3)
-      acts.push({p:3,type:'strategy',icon:'💎',title:'客單價超標！',
-        detail:`平均客單價 NT$${Math.round(aov).toLocaleString()}，超過目標 ${Math.round((aov/tAOV-1)*100)}%。高單方案有人買，可以加大推廣。`});
+      acts.push({p:3,type:'strategy',icon:'💎',title:'客單價超標！加碼推廣高價方案',
+        detail:`平均客單價 NT$${Math.round(aov).toLocaleString()}，超目標 ${Math.round((aov/tAOV-1)*100)}%。高單方案有人買。`,
+        steps:['廣告素材換成「家族傳承組」專屬圖','受眾改成 35-55 歲有小孩或多寵物的家庭','發一則專門介紹高客單方案的貼文']});
   }
 
   // ── 9. CPM（受眾飽和）──
   if (adCPM > 0 && adCPM > tCPM)
-    acts.push({p:2,type:'ad',icon:'🎯',title:'CPM超過設定上限，受眾可能飽和',
-      detail:`CPM NT$${adCPM}，超過目標上限 NT$${tCPM}。換新受眾（試試寵物飼主+非信仰族群）或開廣泛受眾。`});
+    acts.push({p:2,type:'ad',icon:'🎯',title:'CPM超標，受眾飽和，立刻換受眾',
+      detail:`CPM NT$${adCPM}，超過上限 NT$${tCPM}。繼續燒只會越來越貴。`,
+      steps:['廣告後台暫停目前受眾組合','新增受眾：「寵物飼主」+ 排除「已購買者」','或試試廣泛受眾（不設興趣），讓 FB 自動找','新受眾設定後跑3天再評估 CPM']});
 
   // ── 10. 粉絲成長追蹤──
   if (fanGrowth !== null && curFans > 0) {
@@ -1177,9 +1391,19 @@ function renderActionsTo(targetId,acts){
   const el=document.getElementById(targetId); if(!el) return;
   const typeLabel={ad:'廣告',creative:'素材',organic:'有機',page:'頁面',strategy:'策略'};
   const typeCls={ad:'t-ad',creative:'t-creative',organic:'t-organic',page:'t-page',strategy:'t-strategy'};
-  if(!acts.length){el.innerHTML=`<div class="all-ok"><p>✅ 目前沒有緊急行動</p><small>所有參數正常。照排程發文，明天再看數字。</small></div>`;return;}
-  el.innerHTML=acts.map(a=>{const bCls=a.p===1?'p1':a.p===2?'p2':'p3';
-    return`<div class="acard ${bCls}"><div class="acard-head"><div class="acard-ico">${a.icon}</div><div class="acard-title">${a.title}</div><span class="acard-type ${typeCls[a.type]||''}">${typeLabel[a.type]||a.type}</span></div><div class="acard-body">${a.number?`<span class="acard-num">${a.number}</span><span class="acard-numlbl">${a.numlbl}</span>`:''}<div class="acard-detail">${a.detail}</div>${a.warn?`<div class="acard-warn">${a.warn}</div>`:''}</div></div>`;
+  if(!acts.length){el.innerHTML=`<div class="all-ok"><p>✅ 今日無緊急行動</p><small>所有參數正常。照排程發文，明天再看數字。</small></div>`;return;}
+  el.innerHTML=acts.map(a=>{
+    const bCls=a.p===1?'p1':a.p===2?'p2':'p3';
+    const stepsHtml=a.steps?.length?`<div class="cmd-steps"><div class="cmd-steps-title">▶ 現在執行</div>${a.steps.map((s,i)=>`<div class="cmd-step"><div class="cmd-step-num${a.p===1?' urgent':''}">${i+1}</div><div class="cmd-step-txt">${s}</div></div>`).join('')}</div>`:'';
+    return`<div class="acard ${bCls}">
+      <div class="acard-head"><div class="acard-ico">${a.icon}</div><div class="acard-title">${a.title}</div><span class="acard-type ${typeCls[a.type]||''}">${typeLabel[a.type]||a.type}</span></div>
+      <div class="acard-body">
+        ${a.number?`<span class="acard-num">${a.number}</span><span class="acard-numlbl">${a.numlbl}</span>`:''}
+        <div class="acard-detail">${a.detail}</div>
+        ${stepsHtml}
+        ${a.warn?`<div class="acard-warn">${a.warn}</div>`:''}
+      </div>
+    </div>`;
   }).join('');
 }
 
