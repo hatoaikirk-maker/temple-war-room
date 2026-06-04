@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>北港義民廟 × 柴語錄 | 作戰系統</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -281,6 +282,49 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 .toast.show{opacity:1}
 .view{display:none}.view.active{display:block}
 
+/* ── 匯入貼文 Modal ── */
+.import-modal{background:var(--w);border-radius:16px;padding:0;width:100%;max-width:760px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.im-head{padding:16px 22px;border-bottom:1px solid var(--bd);background:#fafbfc;display:flex;align-items:center;justify-content:space-between}
+.im-head h2{font-size:15px;font-weight:800}
+.im-body{padding:18px 22px;overflow-y:auto;flex:1}
+.im-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:16px}
+.im-tab{font-size:12px;font-weight:600;padding:8px 16px;cursor:pointer;color:var(--t2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.im-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.format-box{background:#f8fafc;border-radius:8px;padding:12px 14px;border:1px solid var(--bd);font-size:11px;color:#334155;white-space:pre-wrap;line-height:1.7;font-family:monospace;margin-bottom:12px;max-height:180px;overflow-y:auto}
+.im-upload-area{border:2px dashed var(--bd);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.im-upload-area:hover{border-color:var(--blue);background:#eff6ff}
+.im-upload-area.drag{border-color:var(--blue);background:#eff6ff}
+.im-upload-icon{font-size:32px;margin-bottom:8px}
+.im-upload-hint{font-size:12px;color:var(--t2);line-height:1.6}
+.im-paste-area{width:100%;border:1.5px solid var(--bd);border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;color:var(--t);resize:vertical;min-height:140px;line-height:1.6}
+.im-paste-area:focus{outline:none;border-color:var(--blue)}
+.im-preview-list{max-height:300px;overflow-y:auto}
+.im-preview-item{background:#f8fafc;border-radius:8px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--bd);display:flex;align-items:flex-start;gap:10px}
+.im-preview-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--blue);cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:var(--blue)}
+.im-preview-info{flex:1}
+.im-preview-num{font-size:10px;font-weight:700;color:var(--t3)}
+.im-preview-theme{font-size:13px;font-weight:700;color:var(--t);margin:2px 0}
+.im-preview-meta{font-size:10px;color:var(--t2)}
+.im-footer{padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:10px;background:#fafbfc}
+.im-btn{flex:1;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
+.im-btn:hover{background:#1d4ed8}
+.im-btn-ghost{background:var(--w);color:var(--t2);border:1.5px solid var(--bd);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer}
+.im-btn-ghost:hover{background:var(--bg)}
+
+/* ── 貼文編輯器 Modal ── */
+.pe-modal{background:var(--w);border-radius:16px;padding:0;width:100%;max-width:620px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.pe-head{padding:16px 22px;border-bottom:1px solid var(--bd);background:#fafbfc;display:flex;align-items:center;justify-content:space-between}
+.pe-head h2{font-size:14px;font-weight:800}
+.pe-body{padding:18px 22px;overflow-y:auto;flex:1}
+.pe-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.pe-field{display:flex;flex-direction:column;gap:3px}
+.pe-field label{font-size:10px;font-weight:700;color:var(--t3)}
+.pe-field input,.pe-field select{border:1.5px solid var(--bd);border-radius:7px;padding:7px 10px;font-size:13px;color:var(--t);background:var(--w)}
+.pe-field input:focus,.pe-field select:focus{outline:none;border-color:var(--blue)}
+.pe-field textarea{border:1.5px solid var(--bd);border-radius:7px;padding:8px 10px;font-size:12px;color:var(--t);background:var(--w);resize:vertical;font-family:inherit;line-height:1.7}
+.pe-field textarea:focus{outline:none;border-color:var(--blue)}
+.pe-footer{padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:10px;background:#fafbfc}
+
 /* ── 公式庫 Modal ── */
 .formula-modal{background:var(--w);border-radius:16px;padding:0;width:100%;max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
 .fm-head{padding:18px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:#fafbfc}
@@ -307,6 +351,124 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 </style>
 </head>
 <body>
+
+<!-- 匯入貼文 Modal -->
+<div class="overlay" id="importModal" style="display:none">
+  <div class="import-modal">
+    <div class="im-head">
+      <h2>📥 匯入貼文排程</h2>
+      <button style="font-size:18px;cursor:pointer;border:none;background:none;color:var(--t3)" onclick="closeImport()">✕</button>
+    </div>
+    <div class="im-body">
+      <div class="im-tabs">
+        <div class="im-tab active" id="imtab-guide" onclick="switchImTab('guide')">📋 格式說明</div>
+        <div class="im-tab" id="imtab-upload" onclick="switchImTab('upload')">📁 上傳 Word</div>
+        <div class="im-tab" id="imtab-paste" onclick="switchImTab('paste')">✍️ 直接貼上</div>
+        <div class="im-tab" id="imtab-preview" onclick="switchImTab('preview')" style="display:none">👁️ 預覽確認</div>
+      </div>
+
+      <!-- 格式說明 -->
+      <div id="imview-guide">
+        <p style="font-size:12px;color:var(--t2);margin-bottom:10px">按照以下格式撰寫或填入你的 Word 文件，每篇貼文之間用 <code>==========</code> 分隔：</p>
+        <div class="format-box">==========
+【P1】貼文主題（必填）
+日期：2026-06-15 | 時間：10:00 | 類型：story | 標籤：故事
+-文案-
+貼文文案內容
+可以換行沒問題
+-圖片方向-
+圖片方向描述（選填）
+==========
+【P2】另一篇貼文主題
+日期：2026-06-17 | 時間：20:30 | 類型：product | 標籤：商品
+-文案-
+第二篇的文案
+-圖片方向-
+圖片說明
+==========</div>
+        <div style="background:#eff6ff;border-radius:8px;padding:10px 12px;font-size:11px;color:#1d4ed8;margin-bottom:12px">
+          <strong>類型可填：</strong>story（故事）、product（商品）、progress（進度）、action（行動）<br>
+          <strong>標籤：</strong>任意文字，顯示在排程表的小標籤上<br>
+          <strong>日期格式：</strong>YYYY-MM-DD（如 2026-06-15）
+        </div>
+        <button class="im-btn-ghost" onclick="downloadTemplate()" style="width:100%">⬇️ 下載範本 .txt（用 Word 開啟填寫）</button>
+      </div>
+
+      <!-- 上傳 Word -->
+      <div id="imview-upload" style="display:none">
+        <div class="im-upload-area" id="im-dropzone" onclick="document.getElementById('im-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleFileDrop(event)">
+          <div class="im-upload-icon">📄</div>
+          <div class="im-upload-hint"><strong>點擊或拖曳上傳 .docx / .txt 檔案</strong><br>系統會自動解析貼文格式</div>
+          <input type="file" id="im-file" accept=".docx,.txt,.doc" style="display:none" onchange="handleFileSelect(event)">
+        </div>
+        <div id="im-file-status" style="font-size:11px;color:var(--t2);text-align:center"></div>
+      </div>
+
+      <!-- 直接貼上 -->
+      <div id="imview-paste" style="display:none">
+        <p style="font-size:11px;color:var(--t2);margin-bottom:8px">把 Word 文件的內容複製後貼在下方：</p>
+        <textarea class="im-paste-area" id="im-paste-text" placeholder="把貼文內容貼在這裡..."></textarea>
+        <button class="im-btn" onclick="parsePastedText()" style="width:100%;margin-top:8px">🔍 解析貼文</button>
+      </div>
+
+      <!-- 預覽 -->
+      <div id="imview-preview" style="display:none">
+        <p style="font-size:12px;color:var(--t2);margin-bottom:10px">解析到 <strong id="im-count">0</strong> 篇貼文，請確認後匯入：</p>
+        <div class="im-preview-list" id="im-preview-list"></div>
+      </div>
+    </div>
+    <div class="im-footer">
+      <button class="im-btn-ghost" onclick="closeImport()">取消</button>
+      <button class="im-btn" id="im-confirm-btn" onclick="confirmImport()" style="display:none">✅ 確認匯入到目前專案</button>
+    </div>
+  </div>
+</div>
+
+<!-- 貼文編輯器 Modal -->
+<div class="overlay" id="postEditorModal" style="display:none">
+  <div class="pe-modal">
+    <div class="pe-head">
+      <h2 id="pe-title">✏️ 編輯貼文</h2>
+      <button style="font-size:18px;cursor:pointer;border:none;background:none;color:var(--t3)" onclick="closePostEditor()">✕</button>
+    </div>
+    <div class="pe-body">
+      <input type="hidden" id="pe-post-id">
+      <div class="pe-grid">
+        <div class="pe-field"><label>編號（P1、P2…）</label><input type="text" id="pe-num" placeholder="P1"></div>
+        <div class="pe-field"><label>主題</label><input type="text" id="pe-theme" placeholder="貼文主題"></div>
+        <div class="pe-field"><label>日期</label><input type="date" id="pe-date"></div>
+        <div class="pe-field"><label>時間</label><input type="time" id="pe-time"></div>
+        <div class="pe-field"><label>類型</label>
+          <select id="pe-tag">
+            <option value="story">故事 (story)</option>
+            <option value="product">商品 (product)</option>
+            <option value="progress">進度 (progress)</option>
+            <option value="action">行動 (action)</option>
+          </select>
+        </div>
+        <div class="pe-field"><label>標籤顯示文字</label><input type="text" id="pe-tl" placeholder="故事"></div>
+        <div class="pe-field"><label>階段</label>
+          <select id="pe-stage">
+            <option value="s1">s1 認知期</option>
+            <option value="s2">s2 信任期</option>
+            <option value="s3">s3 慾望期</option>
+            <option value="s4">s4 行動期</option>
+            <option value="s5">s5 緊迫期</option>
+          </select>
+        </div>
+      </div>
+      <div class="pe-field" style="margin-bottom:10px"><label>文案</label><textarea id="pe-content" rows="6" placeholder="貼文文案..."></textarea></div>
+      <div class="pe-field" style="margin-bottom:10px"><label>圖片方向</label><textarea id="pe-img" rows="3" placeholder="圖片說明..."></textarea></div>
+      <div class="pe-field" style="margin-bottom:10px"><label>置頂留言</label><textarea id="pe-topcomment" rows="2" placeholder="置頂留言文字（選填，空白則自動生成）"></textarea></div>
+      <div class="pe-field"><label>廟方提醒</label><textarea id="pe-templenote" rows="2" placeholder="廟方提醒訊息（選填）"></textarea></div>
+    </div>
+    <div class="pe-footer">
+      <button class="im-btn-ghost" onclick="deletePostEditor()" style="color:#ef4444;border-color:#fca5a5">🗑️ 刪除這篇</button>
+      <button class="im-btn-ghost" onclick="closePostEditor()">取消</button>
+      <button class="im-btn" onclick="savePostEditor()">💾 儲存</button>
+    </div>
+  </div>
+</div>
 
 <!-- 新增專案 Modal -->
 <div class="overlay" id="newProjectModal" style="display:none">
@@ -488,6 +650,9 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
   <div class="sb-section">我的專案</div>
   <div id="sb-proj-list"></div>
   <div class="sb-proj-add" onclick="openNewProject()"><span>＋</span>新增募資專案</div>
+  <div class="sb-section">貼文管理</div>
+  <a class="sb-item" onclick="openImport()"><span class="ico">📥</span>匯入貼文</a>
+  <a class="sb-item" onclick="openNewPost()"><span class="ico">➕</span>新增貼文</a>
   <div class="sb-section">系統</div>
   <a class="sb-item" onclick="openSetup()"><span class="ico">⚙️</span>活動設定</a>
   <div class="sb-footer">
@@ -1207,7 +1372,7 @@ function renderToday() {
 function renderScheduleTable() {
   const stageNames={s1:'🔵 認知期',s2:'🟢 信任期',s3:'🟡 慾望期',s4:'🟣 行動期',s5:'🔴 緊迫期'};
   const bMap={story:'b-story',product:'b-product',progress:'b-progress',action:'b-action'};
-  let lastStage='',html=`<thead><tr><th>編號</th><th>主題</th><th>日期</th><th>時間</th><th>類型</th><th>狀態</th></tr></thead><tbody>`;
+  let lastStage='',html=`<thead><tr><th>編號</th><th>主題</th><th>日期</th><th>時間</th><th>類型</th><th>狀態</th><th style="width:56px"></th></tr></thead><tbody>`;
   POSTS.forEach(p=>{
     if(p.stage!==lastStage&&stageNames[p.stage]){html+=`<tr class="stage-row"><td colspan="6">${stageNames[p.stage]}</td></tr>`;lastStage=p.stage;}
     if(p.isReview){html+=`<tr class="stage-row" style="background:#f5f3ff!important;cursor:pointer" onclick="selectPost('${p.id}')"><td colspan="2" style="color:#7c3aed">📋 ${p.theme}</td><td style="color:#7c3aed">${p.ds}</td><td colspan="3" style="color:#8b5cf6">複查節點</td></tr>`;return;}
@@ -1224,6 +1389,7 @@ function renderScheduleTable() {
       <td>${p.time||'—'}</td>
       <td><span class="badge ${bMap[p.tag]||'b-review'}">${p.tl}</span></td>
       <td style="font-size:11px;font-weight:600;color:${perfColor}">${perfLabel}</td>
+      <td onclick="event.stopPropagation()"><button style="font-size:10px;padding:3px 7px;border-radius:5px;border:1px solid var(--bd);background:var(--w);cursor:pointer;color:var(--t2)" onclick="openPostEditor('${p.id}')">✏️</button></td>
     </tr>`;
   });
   html+='</tbody>';
@@ -1787,6 +1953,293 @@ const getN=id=>parseFloat(document.getElementById(id)?.value)||0;
 const getPM=id=>parseFloat(document.getElementById(id)?.value)||0;
 function copyText(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText||el.textContent).then(()=>showToast('✓ 已複製'));}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ════ 匯入貼文 ════════════════════════════════
+let parsedImportPosts = [];
+
+function openImport(){
+  parsedImportPosts=[];
+  document.getElementById('importModal').style.display='flex';
+  switchImTab('guide');
+  document.getElementById('im-confirm-btn').style.display='none';
+}
+function closeImport(){ document.getElementById('importModal').style.display='none'; }
+
+function switchImTab(tab){
+  ['guide','upload','paste','preview'].forEach(t=>{
+    const v=document.getElementById('imview-'+t);
+    const b=document.getElementById('imtab-'+t);
+    if(v) v.style.display=t===tab?'block':'none';
+    if(b) b.classList.toggle('active',t===tab);
+  });
+}
+
+function downloadTemplate(){
+  const tpl=`==========
+【P1】貼文主題（必填）
+日期：2026-06-15 | 時間：10:00 | 類型：story | 標籤：故事
+-文案-
+在這裡輸入貼文文案
+可以換行，保留段落空行都沒問題
+-圖片方向-
+在這裡描述圖片方向（選填）
+==========
+【P2】另一篇貼文主題
+日期：2026-06-17 | 時間：20:30 | 類型：product | 標籤：商品
+-文案-
+第二篇的文案內容
+
+可以有空白行
+-圖片方向-
+第二篇的圖片說明
+==========
+
+類型說明：
+  story     → 故事/情感類
+  product   → 商品/回饋介紹
+  progress  → 進度報告
+  action    → 行動/倒數緊迫`;
+  const blob=new Blob([tpl],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='貼文匯入範本.txt';a.click();
+}
+
+async function handleFileSelect(e){
+  const file=e.target.files[0]; if(!file) return;
+  await processFile(file);
+}
+async function handleFileDrop(e){
+  e.preventDefault();
+  document.getElementById('im-dropzone').classList.remove('drag');
+  const file=e.dataTransfer.files[0]; if(!file) return;
+  await processFile(file);
+}
+
+async function processFile(file){
+  const status=document.getElementById('im-file-status');
+  status.textContent='解析中...';
+  try{
+    let text='';
+    if(file.name.endsWith('.docx')){
+      const buf=await file.arrayBuffer();
+      const result=await mammoth.extractRawText({arrayBuffer:buf});
+      text=result.value;
+    } else {
+      text=await file.text();
+    }
+    const posts=parsePostsFromText(text);
+    if(!posts.length){ status.textContent='⚠️ 未解析到任何貼文，請確認格式符合範本'; return; }
+    status.textContent=`✓ 解析到 ${posts.length} 篇貼文`;
+    showImportPreview(posts);
+  }catch(e){ status.textContent='❌ 解析失敗：'+e.message; }
+}
+
+function parsePastedText(){
+  const text=document.getElementById('im-paste-text').value;
+  if(!text.trim()){ showToast('⚠️ 請先貼上內容'); return; }
+  const posts=parsePostsFromText(text);
+  if(!posts.length){ showToast('⚠️ 未解析到任何貼文，請確認格式符合範本'); return; }
+  showImportPreview(posts);
+}
+
+function parsePostsFromText(text){
+  // 用 ========== 分割貼文區塊（6個以上=）
+  const blocks=text.split(/={6,}/g).map(b=>b.trim()).filter(b=>b.length>0);
+  const posts=[];
+  blocks.forEach((block,idx)=>{
+    const lines=block.split('\n');
+    const post={
+      id:'import_'+Date.now()+'_'+idx,
+      num:'P'+(posts.length+1),
+      theme:'',date:'',time:'',tag:'story',tl:'故事',stage:'s1',
+      is_review:false,content:'',img:'',
+      top_comment:'',story_text:'',dm_reply:'',temple_note:'',
+      action_hot:'',action_warm:'',action_cold:'',task_note:'',
+      sort_order:posts.length
+    };
+    let mode='meta'; // meta | content | img
+    const contentLines=[], imgLines=[];
+
+    lines.forEach(line=>{
+      const l=line.trim();
+      if(!l) { if(mode==='content') contentLines.push(''); return; }
+
+      // 第一行: 【P1】主題
+      if(!post.theme && l.match(/^【.*?】/)){
+        post.num=l.match(/【(.*?)】/)?.[1]||post.num;
+        post.theme=l.replace(/^【.*?】\s*/,'').trim();
+        return;
+      }
+      // 元資料行（含 | 分隔）
+      if(l.includes('日期') && l.includes('|')){
+        const parts=l.split('|').map(p=>p.trim());
+        parts.forEach(p=>{
+          if(p.match(/日期[：:]/)) post.date=p.replace(/日期[：:]\s*/,'').trim();
+          if(p.match(/時間[：:]/)) post.time=p.replace(/時間[：:]\s*/,'').trim();
+          if(p.match(/類型[：:]/)){
+            const t=p.replace(/類型[：:]\s*/,'').trim().toLowerCase();
+            if(t.includes('product')||t.includes('商品')){post.tag='product';post.tl='商品';}
+            else if(t.includes('progress')||t.includes('進度')){post.tag='progress';post.tl='進度';}
+            else if(t.includes('action')||t.includes('行動')){post.tag='action';post.tl='行動';}
+            else{post.tag='story';post.tl='故事';}
+          }
+          if(p.match(/標籤[：:]/)) post.tl=p.replace(/標籤[：:]\s*/,'').trim();
+          if(p.match(/階段[：:]/)) post.stage=p.replace(/階段[：:]\s*/,'').trim();
+        });
+        mode='meta'; return;
+      }
+      // 切換區段
+      if(l==='-文案-'||l.match(/^-文案[-\s]/)){mode='content';return;}
+      if(l==='-圖片方向-'||l.match(/^-圖片/)){mode='img';return;}
+      // 依 mode 收集
+      if(mode==='content') contentLines.push(line);
+      else if(mode==='img') imgLines.push(line);
+      else if(!post.theme) post.theme=l; // fallback: 第一行作為主題
+    });
+
+    post.content=contentLines.join('\n').trim();
+    post.img=imgLines.join('\n').trim();
+    if(post.theme||post.content) posts.push(post);
+  });
+  return posts;
+}
+
+function showImportPreview(posts){
+  parsedImportPosts=posts;
+  document.getElementById('im-count').textContent=posts.length;
+  const list=document.getElementById('im-preview-list');
+  list.innerHTML=posts.map((p,i)=>`
+    <div class="im-preview-item">
+      <input type="checkbox" class="im-preview-check" id="imchk-${i}" checked>
+      <div class="im-preview-info">
+        <div class="im-preview-num">${p.num}</div>
+        <div class="im-preview-theme">${p.theme||'（無主題）'}</div>
+        <div class="im-preview-meta">${p.date||'（無日期）'} ${p.time||''} ｜ 類型：${p.tl} ｜ ${p.content.length} 字文案</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('imtab-preview').style.display='';
+  switchImTab('preview');
+  document.getElementById('im-confirm-btn').style.display='';
+}
+
+async function confirmImport(){
+  if(!currentProjectId){showToast('⚠️ 請先選擇專案');return;}
+  const selected=parsedImportPosts.filter((_,i)=>document.getElementById('imchk-'+i)?.checked);
+  if(!selected.length){showToast('⚠️ 請至少勾選一篇');return;}
+
+  // 取得現有最大 sort_order
+  const{data:existing}=await SB.from('ym_posts').select('sort_order').eq('project_id',currentProjectId).order('sort_order',{ascending:false}).limit(1);
+  const baseOrder=(existing?.[0]?.sort_order||0)+1;
+
+  const rows=selected.map((p,i)=>({
+    project_id:currentProjectId, post_id:p.id,
+    num:p.num, date:p.date, time_slot:p.time, theme:p.theme,
+    tag:p.tag, tl:p.tl, stage:p.stage, is_review:false,
+    content:p.content, img:p.img,
+    top_comment:p.top_comment, story_text:p.story_text,
+    dm_reply:p.dm_reply, temple_note:p.temple_note,
+    action_hot:p.action_hot, action_warm:p.action_warm, action_cold:p.action_cold,
+    task_note:p.task_note, sort_order:baseOrder+i
+  }));
+
+  const{error}=await SB.from('ym_posts').upsert(rows,{onConflict:'project_id,post_id'});
+  if(error){showToast('❌ 匯入失敗：'+error.message);return;}
+
+  // 重新載入貼文
+  const{data:postsRows}=await SB.from('ym_posts').select('*').eq('project_id',currentProjectId).order('sort_order');
+  POSTS=(postsRows||[]).map(transformPost);
+  closeImport();
+  renderScheduleTable();
+  showToast(`✓ 成功匯入 ${rows.length} 篇貼文！`);
+}
+
+// ════ 貼文編輯器 ═══════════════════════════════
+function openNewPost(){
+  document.getElementById('pe-title').textContent='➕ 新增貼文';
+  document.getElementById('pe-post-id').value='new_'+Date.now();
+  document.getElementById('pe-num').value='P'+(POSTS.filter(p=>!p.isReview).length+1);
+  document.getElementById('pe-theme').value='';
+  document.getElementById('pe-date').value='';
+  document.getElementById('pe-time').value='';
+  document.getElementById('pe-tag').value='story';
+  document.getElementById('pe-tl').value='故事';
+  document.getElementById('pe-stage').value='s1';
+  document.getElementById('pe-content').value='';
+  document.getElementById('pe-img').value='';
+  document.getElementById('pe-topcomment').value='';
+  document.getElementById('pe-templenote').value='';
+  document.getElementById('postEditorModal').style.display='flex';
+  showView('schedule');
+}
+
+function openPostEditor(postId){
+  const p=POSTS.find(x=>x.id===postId); if(!p) return;
+  document.getElementById('pe-title').textContent='✏️ 編輯：'+p.num+' '+p.theme;
+  document.getElementById('pe-post-id').value=p.id;
+  document.getElementById('pe-num').value=p.num||'';
+  document.getElementById('pe-theme').value=p.theme||'';
+  document.getElementById('pe-date').value=p.date||'';
+  document.getElementById('pe-time').value=p.time||'';
+  document.getElementById('pe-tag').value=p.tag||'story';
+  document.getElementById('pe-tl').value=p.tl||'';
+  document.getElementById('pe-stage').value=p.stage||'s1';
+  document.getElementById('pe-content').value=p.content||'';
+  document.getElementById('pe-img').value=p.img||'';
+  document.getElementById('pe-topcomment').value=p.topComment||'';
+  document.getElementById('pe-templenote').value=p.templeNote||'';
+  document.getElementById('postEditorModal').style.display='flex';
+}
+function closePostEditor(){ document.getElementById('postEditorModal').style.display='none'; }
+
+async function savePostEditor(){
+  if(!currentProjectId) return;
+  const postId=document.getElementById('pe-post-id').value;
+  const tag=document.getElementById('pe-tag').value;
+  const tagLabel={'story':'故事','product':'商品','progress':'進度','action':'行動'};
+  const existing=POSTS.find(p=>p.id===postId);
+  const row={
+    project_id:currentProjectId, post_id:postId,
+    num:document.getElementById('pe-num').value,
+    date:document.getElementById('pe-date').value,
+    time_slot:document.getElementById('pe-time').value,
+    theme:document.getElementById('pe-theme').value,
+    tag, tl:document.getElementById('pe-tl').value||tagLabel[tag]||'故事',
+    stage:document.getElementById('pe-stage').value,
+    is_review:false,
+    content:document.getElementById('pe-content').value,
+    img:document.getElementById('pe-img').value,
+    top_comment:document.getElementById('pe-topcomment').value,
+    temple_note:document.getElementById('pe-templenote').value,
+    story_text:existing?.storyText||'',
+    dm_reply:existing?.dmReply||'',
+    action_hot:existing?.actions?.hot||'',
+    action_warm:existing?.actions?.warm||'',
+    action_cold:existing?.actions?.cold||'',
+    task_note:existing?.task||'',
+    sort_order:existing?POSTS.indexOf(existing):POSTS.length
+  };
+  const{error}=await SB.from('ym_posts').upsert([row],{onConflict:'project_id,post_id'});
+  if(error){showToast('❌ 儲存失敗：'+error.message);return;}
+  const{data:postsRows}=await SB.from('ym_posts').select('*').eq('project_id',currentProjectId).order('sort_order');
+  POSTS=(postsRows||[]).map(transformPost);
+  closePostEditor();
+  renderScheduleTable();
+  renderOverviewPosts();
+  showToast('✓ 貼文已儲存');
+}
+
+async function deletePostEditor(){
+  const postId=document.getElementById('pe-post-id').value;
+  const theme=document.getElementById('pe-theme').value||'此貼文';
+  if(!confirm(`確定刪除「${theme}」？`)) return;
+  await SB.from('ym_posts').delete().eq('project_id',currentProjectId).eq('post_id',postId);
+  const{data:postsRows}=await SB.from('ym_posts').select('*').eq('project_id',currentProjectId).order('sort_order');
+  POSTS=(postsRows||[]).map(transformPost);
+  closePostEditor();
+  renderScheduleTable();
+  showToast('✓ 貼文已刪除');
+}
 
 // ════ 貼文範本（義民廟 60天，供新專案複製用）═══
 const POSTS_TEMPLATE=[
