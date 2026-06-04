@@ -206,7 +206,9 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 
 /* ── Setup Modal ── */
 .overlay{position:fixed;inset:0;background:rgba(15,23,42,.82);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px}
-.modal{background:var(--w);border-radius:16px;padding:28px;width:100%;max-width:440px}
+.modal{background:var(--w);border-radius:16px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-divider{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--bd)}
+.mg-hint{font-size:10px;color:var(--t3);margin-top:3px}
 .modal h2{font-size:17px;font-weight:800;margin-bottom:4px}
 .modal p.sub{font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.5}
 .mg{margin-bottom:12px}
@@ -234,15 +236,47 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 <!-- Setup Modal -->
 <div class="overlay" id="setupModal" style="display:none">
   <div class="modal">
-    <h2>🐕 設定募資目標</h2>
-    <p class="sub">儲存後同步到雲端，所有同事看到同一份數據。</p>
-    <div class="mg"><label>募資目標金額（NT$）</label><input type="number" id="s-goal" placeholder="5000000"></div>
+    <h2>⚙️ 活動設定</h2>
+    <p class="sub">每個參數都會影響 KPI 計算與行動建議，請盡量填完整。</p>
+
+    <div class="modal-divider">📅 募資基本資訊</div>
+    <div class="mg"><label>案名 / 活動名稱</label><input type="text" id="s-name" placeholder="e.g. 北港義民廟 × 柴語錄 義犬守護計畫"></div>
+    <div class="mg"><label>募資目標金額（NT$）</label><input type="number" id="s-goal" placeholder="5000000"><div class="mg-hint">例：5000000（500萬）</div></div>
     <div class="mg mg-row">
       <div><label>開始日期</label><input type="date" id="s-start"></div>
       <div><label>結束日期</label><input type="date" id="s-end"></div>
     </div>
     <div class="mg"><label>目前已募得（NT$）</label><input type="number" id="s-cur" placeholder="0"></div>
-    <button class="modal-btn" onclick="saveSetup()">儲存並開始 →</button>
+    <div class="mg"><label>嘖嘖連結</label><input type="url" id="s-url" placeholder="https://www.zeczec.com/projects/..."><div class="mg-hint">貼文文案裡的「[連結]」會自動替換為此網址</div></div>
+
+    <div class="modal-divider">👥 FB 粉絲頁初始參數</div>
+    <div class="mg"><label>開案時粉絲數（人）</label><input type="number" id="s-fb-fans" placeholder="0"><div class="mg-hint">募資第一天的粉絲數，用來計算這60天長了多少粉</div></div>
+    <div class="mg mg-row">
+      <div><label>目標每篇觸及（人）</label><input type="number" id="s-fb-reach" placeholder="1000"><div class="mg-hint">每篇貼文預期觸及人數</div></div>
+      <div><label>目標互動率（%）</label><input type="number" id="s-fb-er" placeholder="3.0" step="0.1"><div class="mg-hint">互動數÷觸及，低於此值會警示</div></div>
+    </div>
+    <div class="mg mg-row">
+      <div><label>目標有機CTR（%）</label><input type="number" id="s-fb-ctr" placeholder="1.0" step="0.1"><div class="mg-hint">點擊數÷觸及，低於此值會警示</div></div>
+      <div><label>目標限動觸及（人）</label><input type="number" id="s-st-reach" placeholder="500"><div class="mg-hint">每則限動預期觸及人數</div></div>
+    </div>
+
+    <div class="modal-divider">📣 廣告初始參數</div>
+    <div class="mg mg-row">
+      <div><label>每日廣告預算上限（NT$）</label><input type="number" id="s-ad-budget" placeholder="3000"><div class="mg-hint">每天廣告最多燒多少</div></div>
+      <div><label>目標 ROAS（倍）</label><input type="number" id="s-ad-roas" placeholder="3.0" step="0.1"><div class="mg-hint">廣告回收倍數目標，低於此值要調整</div></div>
+    </div>
+    <div class="mg mg-row">
+      <div><label>目標廣告CTR（%）</label><input type="number" id="s-ad-ctr" placeholder="1.5" step="0.1"><div class="mg-hint">FB後台廣告點擊率目標</div></div>
+      <div><label>目標 CPM 上限（NT$）</label><input type="number" id="s-ad-cpm" placeholder="150"><div class="mg-hint">超過此值代表受眾可能飽和</div></div>
+    </div>
+
+    <div class="modal-divider">💰 嘖嘖目標設定</div>
+    <div class="mg mg-row">
+      <div><label>目標平均客單價（NT$）</label><input type="number" id="s-aov" placeholder="1000"><div class="mg-hint">每筆訂單預期金額</div></div>
+      <div><label>目標頁面轉換率（%）</label><input type="number" id="s-conv" placeholder="5.0" step="0.1"><div class="mg-hint">點擊嘖嘖連結後的購買率</div></div>
+    </div>
+
+    <button class="modal-btn" onclick="saveSetup()">💾 儲存所有設定 →</button>
   </div>
 </div>
 
@@ -430,7 +464,25 @@ const SB = supabase.createClient(
 );
 
 // ════ State ═══════════════════════════════════
-let cfg = {goal:5000000,start:'2026-06-15',end:'2026-08-14',current:0};
+let cfg = {
+  name:'北港義民廟 × 柴語錄 義犬守護計畫',
+  goal:5000000, start:'2026-06-15', end:'2026-08-14', current:0,
+  url:'',
+  // FB 初始參數
+  fb_initial_fans:0,
+  fb_target_reach:1000,
+  fb_target_er:3.0,
+  fb_target_ctr:1.0,
+  fb_target_story_reach:500,
+  // 廣告初始參數
+  ad_daily_budget:3000,
+  ad_target_roas:3.0,
+  ad_target_ctr:1.5,
+  ad_target_cpm:150,
+  // 嘖嘖目標
+  zz_target_aov:1000,
+  zz_target_conv:5.0
+};
 let postData = {};
 let selectedId = null;
 let activeTab = 'content';
@@ -448,12 +500,27 @@ async function init() {
   document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
 
   const {data:cfgRows} = await SB.from('ym_config').select('*');
-  if (cfgRows?.length) cfgRows.forEach(r=>{
-    if(r.key==='goal') cfg.goal=parseInt(r.value)||5000000;
-    if(r.key==='start') cfg.start=r.value;
-    if(r.key==='end') cfg.end=r.value;
-    if(r.key==='current') cfg.current=parseInt(r.value)||0;
-  }); else openSetup();
+  if (cfgRows?.length) {
+    cfgRows.forEach(r=>{
+      if(r.key==='name')                cfg.name=r.value;
+      if(r.key==='goal')                cfg.goal=parseInt(r.value)||5000000;
+      if(r.key==='start')               cfg.start=r.value;
+      if(r.key==='end')                 cfg.end=r.value;
+      if(r.key==='current')             cfg.current=parseInt(r.value)||0;
+      if(r.key==='url')                 cfg.url=r.value;
+      if(r.key==='fb_initial_fans')     cfg.fb_initial_fans=parseInt(r.value)||0;
+      if(r.key==='fb_target_reach')     cfg.fb_target_reach=parseInt(r.value)||1000;
+      if(r.key==='fb_target_er')        cfg.fb_target_er=parseFloat(r.value)||3.0;
+      if(r.key==='fb_target_ctr')       cfg.fb_target_ctr=parseFloat(r.value)||1.0;
+      if(r.key==='fb_target_story_reach')cfg.fb_target_story_reach=parseInt(r.value)||500;
+      if(r.key==='ad_daily_budget')     cfg.ad_daily_budget=parseInt(r.value)||3000;
+      if(r.key==='ad_target_roas')      cfg.ad_target_roas=parseFloat(r.value)||3.0;
+      if(r.key==='ad_target_ctr')       cfg.ad_target_ctr=parseFloat(r.value)||1.5;
+      if(r.key==='ad_target_cpm')       cfg.ad_target_cpm=parseInt(r.value)||150;
+      if(r.key==='zz_target_aov')       cfg.zz_target_aov=parseInt(r.value)||1000;
+      if(r.key==='zz_target_conv')      cfg.zz_target_conv=parseFloat(r.value)||5.0;
+    });
+  } else openSetup();
 
   const {data:pRows} = await SB.from('ym_post_data').select('*');
   if(pRows) pRows.forEach(r=>{postData[r.post_id]=r;});
@@ -538,12 +605,31 @@ function renderStats() {
   const k=kpi();
   const pct=(k.pct*100).toFixed(1);
   const statusTxt=k.isAhead?'✅ 超前進度':k.isFarBehind?'🚨 嚴重落後':k.isBehind?'⚠️ 略落後':'✅ 進度正常';
-  const statusCls=k.isAhead||(!k.isBehind)?'sub-ok':k.isFarBehind?'sub-danger':'sub-warn';
+  const statusCls=(!k.isBehind)?'sub-ok':k.isFarBehind?'sub-danger':'sub-warn';
+  const gapVal = Math.abs(Math.round(k.gap/10000));
+  const gapTxt = k.gap<=0 ? `超前 ${gapVal}萬` : `落後 ${gapVal}萬`;
+  const gapColor = k.isFarBehind?'var(--red)':k.isBehind?'var(--yellow)':'var(--green)';
   document.getElementById('stat-grid').innerHTML=`
-    <div class="stat-card"><div class="stat-icon si-blue">🎯</div><div class="stat-info"><div class="stat-val">${pct}%</div><div class="stat-lbl">募資達成率</div><div class="stat-sub ${statusCls}">${statusTxt}</div></div></div>
-    <div class="stat-card"><div class="stat-icon si-green">💰</div><div class="stat-info"><div class="stat-val">NT$${(k.cur/10000).toFixed(1)}萬</div><div class="stat-lbl">目前累積募資</div><div class="stat-sub" style="color:var(--t3)">目標 NT$${(k.goal/10000).toFixed(0)}萬</div></div></div>
-    <div class="stat-card"><div class="stat-icon si-yellow">⏳</div><div class="stat-info"><div class="stat-val">${k.remaining} 天</div><div class="stat-lbl">剩餘天數</div><div class="stat-sub" style="color:var(--t3)">每日需募 NT$${Math.round(k.dailyNeed/1000)}K</div></div></div>
-    <div class="stat-card"><div class="stat-icon si-${k.isFarBehind?'red':'blue'}">📊</div><div class="stat-info"><div class="stat-val" style="color:var(--${k.isFarBehind?'red':'blue'})">NT$${Math.round(k.gap/10000)>0?'+'+Math.round(k.gap/10000):''}${Math.round(k.gap/10000)<=0?Math.abs(Math.round(k.gap/10000))+'萬超前':Math.round(k.gap/10000)+'萬落後'}</div><div class="stat-lbl">進度差距</div><div class="stat-sub" style="color:var(--t3)">基準廣告 NT$${k.baseBudget.toLocaleString()}/日</div></div></div>`;
+    <div class="stat-card"><div class="stat-icon si-blue">🎯</div><div class="stat-info">
+      <div class="stat-val">${pct}%</div>
+      <div class="stat-lbl">募資達成率</div>
+      <div class="stat-sub ${statusCls}">${statusTxt}</div>
+    </div></div>
+    <div class="stat-card"><div class="stat-icon si-green">💰</div><div class="stat-info">
+      <div class="stat-val">NT$${(k.cur/10000).toFixed(1)}萬</div>
+      <div class="stat-lbl">目前累積募資</div>
+      <div class="stat-sub" style="color:var(--t3)">目標 NT$${(k.goal/10000).toFixed(0)}萬</div>
+    </div></div>
+    <div class="stat-card"><div class="stat-icon si-yellow">⏳</div><div class="stat-info">
+      <div class="stat-val">${k.remaining} 天</div>
+      <div class="stat-lbl">剩餘天數（共${k.total}天）</div>
+      <div class="stat-sub" style="color:var(--t3)">每日需募 NT$${Math.round(k.dailyNeed/1000)}K｜廣告上限 NT$${cfg.ad_daily_budget.toLocaleString()}</div>
+    </div></div>
+    <div class="stat-card"><div class="stat-icon si-${k.isFarBehind?'red':k.isBehind?'yellow':'blue'}">📊</div><div class="stat-info">
+      <div class="stat-val" style="color:${gapColor}">${gapTxt}</div>
+      <div class="stat-lbl">進度差距</div>
+      <div class="stat-sub" style="color:var(--t3)">目標ROAS ${cfg.ad_target_roas}x｜目標互動率 ${cfg.fb_target_er}%</div>
+    </div></div>`;
 }
 
 function renderProgressBar() {
@@ -753,42 +839,196 @@ function switchTab(tab){activeTab=tab;localPerf=null;renderDetail();}
 // ════ Analysis Engine ═════════════════════════
 function runAnalysis(){
   saveDaily();
-  const reach=getN('fb-reach'),inter=getN('fb-inter'),shares=getN('fb-shares'),clicks=getN('fb-clicks');
-  const zzNew=getN('zz-new'),zzOrds=getN('zz-orders'),adROAS=getN('ad-roas'),adCPM=getN('ad-cpm'),adCTR=getN('ad-ctr');
-  const k=kpi();
-  const er=reach>0?inter/reach:0,shareR=reach>0?shares/reach:0,convR=clicks>0?zzOrds/clicks:0;
-  const acts=[],WARN='⚠️ 建議執行前，請人工確認素材品質與頁面轉換率';
-  if(adROAS>0){
-    if(adROAS>=4&&k.isBehind) acts.push({p:1,type:'ad',icon:'🚀',title:'廣告全力放量',detail:`ROAS ${adROAS}x，落後 NT$${(k.gap/10000).toFixed(0)}萬。`,number:`NT$${Math.round(k.baseBudget*3).toLocaleString()}`,numlbl:'建議廣告預算',warn:WARN});
-    else if(adROAS>=4&&k.isAhead) acts.push({p:3,type:'ad',icon:'💰',title:'廣告可降低',detail:`ROAS ${adROAS}x 但進度超前。降低預算，留給最後10天。`,number:`NT$${Math.round(k.baseBudget*0.4).toLocaleString()}`,numlbl:'建議廣告預算（降）'});
-    else if(adROAS>=2&&adROAS<4) acts.push({p:2,type:'ad',icon:'📊',title:`ROAS正常，${k.isBehind?'加碼補落後':'維持預算'}`,detail:`ROAS ${adROAS}x${k.isBehind?`，落後 NT$${(k.gap/10000).toFixed(0)}萬`:'，進度正常'}。`,number:`NT$${Math.round(k.baseBudget*(k.isBehind?1.8:1)).toLocaleString()}`,numlbl:'建議廣告預算'});
-    else if(adROAS<1.5) acts.push({p:1,type:'ad',icon:'🛑',title:'廣告虧錢，立刻暫停',detail:`ROAS ${adROAS}x，低於1.5在虧錢。暫停廣告，換素材或受眾再開。`,number:'NT$0',numlbl:'今日廣告預算（暫停）'});
-  } else if(k.isFarBehind) acts.push({p:1,type:'ad',icon:'⚠️',title:'嚴重落後，需要啟動廣告',detail:`落後 NT$${(k.gap/10000).toFixed(0)}萬。`,number:`NT$${Math.round(k.baseBudget*2).toLocaleString()}`,numlbl:'建議最低廣告預算',warn:WARN});
-  if(adCTR>0){
-    if(adCTR<0.8) acts.push({p:1,type:'creative',icon:'🎨',title:'廣告素材需要換',detail:`廣告CTR ${adCTR}%，低於0.8%是素材疲勞。換封面圖或改文案開頭。`});
-    else if(adCTR>=3) acts.push({p:2,type:'creative',icon:'✨',title:'高效素材，複製出變體',detail:`廣告CTR ${adCTR}%，超過3%很強。複製3-5個變體換受眾繼續跑。`});
+  const reach   = getN('fb-reach');
+  const inter   = getN('fb-inter');
+  const shares  = getN('fb-shares');
+  const clicks  = getN('fb-clicks');
+  const stReach = getN('st-reach');
+  const zzNew   = getN('zz-new');
+  const zzOrds  = getN('zz-orders');
+  const zzTotal = getN('zz-total');
+  const adSpend = getN('ad-spend');
+  const adROAS  = getN('ad-roas');
+  const adCPM   = getN('ad-cpm');
+  const adCTR   = getN('ad-ctr');
+  const curFans = getN('fb-fans-total');
+  const k = kpi();
+
+  // 計算衍生指標
+  const er       = reach > 0 ? inter / reach : 0;
+  const shareR   = reach > 0 ? shares / reach : 0;
+  const convR    = clicks > 0 ? zzOrds / clicks : 0;
+  const aov      = zzOrds > 0 ? zzNew / zzOrds : 0;
+
+  // 目標基準（從設定帶入）
+  const tER     = cfg.fb_target_er / 100;     // 目標互動率（小數）
+  const tCTR    = cfg.fb_target_ctr / 100;    // 目標有機CTR（小數）
+  const tReach  = cfg.fb_target_reach;        // 目標觸及
+  const tROAS   = cfg.ad_target_roas;         // 目標ROAS
+  const tCTRad  = cfg.ad_target_ctr;          // 目標廣告CTR（%）
+  const tCPM    = cfg.ad_target_cpm;          // 目標CPM上限
+  const tAOV    = cfg.zz_target_aov;          // 目標客單價
+  const tConv   = cfg.zz_target_conv / 100;   // 目標轉換率（小數）
+  const maxBudget = cfg.ad_daily_budget;       // 每日廣告預算上限
+  const fanGrowth = cfg.fb_initial_fans > 0 ? curFans - cfg.fb_initial_fans : null;
+
+  const acts = [];
+  const WARN = '⚠️ 建議執行前，請人工確認素材品質、留言風向與頁面轉換率';
+
+  // ── 1. 廣告決策（ROAS vs 目標 + 進度 + 預算上限）──
+  if (adROAS > 0) {
+    const budgetCap = maxBudget > 0 ? `（上限 NT$${maxBudget.toLocaleString()}）` : '';
+    if (adROAS >= tROAS * 1.3 && k.isBehind) {
+      const suggest = Math.min(Math.round(k.baseBudget * 3), maxBudget || 999999);
+      acts.push({p:1,type:'ad',icon:'🚀',title:'廣告全力放量',
+        detail:`ROAS ${adROAS}x（目標 ${tROAS}x），且落後 NT$${(k.gap/10000).toFixed(0)}萬。高ROI時刻，建議加碼。`,
+        number:`NT$${suggest.toLocaleString()}`,numlbl:`今日建議廣告預算${budgetCap}`,warn:WARN});
+    } else if (adROAS >= tROAS && k.isAhead) {
+      const suggest = Math.round(k.baseBudget * 0.5);
+      acts.push({p:3,type:'ad',icon:'💰',title:'廣告可降低，超前可省錢',
+        detail:`ROAS ${adROAS}x 且進度超前。降低預算，留給最後10天衝刺。`,
+        number:`NT$${suggest.toLocaleString()}`,numlbl:'今日建議廣告預算（降）'});
+    } else if (adROAS >= tROAS * 0.7 && adROAS < tROAS * 1.3) {
+      const mult = k.isBehind ? 1.5 : 1.0;
+      const suggest = Math.min(Math.round(k.baseBudget * mult), maxBudget || 999999);
+      acts.push({p:2,type:'ad',icon:'📊',title:`ROAS接近目標，${k.isBehind?'加碼補落後':'維持預算'}`,
+        detail:`ROAS ${adROAS}x（目標 ${tROAS}x）${k.isBehind?`，落後 NT$${(k.gap/10000).toFixed(0)}萬`:'，進度正常'}。`,
+        number:`NT$${suggest.toLocaleString()}`,numlbl:`今日建議廣告預算${budgetCap}`});
+    } else if (adROAS < tROAS * 0.5) {
+      acts.push({p:1,type:'ad',icon:'🛑',title:'廣告嚴重虧損，立刻暫停',
+        detail:`ROAS ${adROAS}x，遠低於目標 ${tROAS}x（不到一半）。廣告在虧錢，暫停後換素材或受眾再開。`,
+        number:'NT$0',numlbl:'今日廣告預算（暫停）'});
+    } else if (adROAS < tROAS * 0.7) {
+      acts.push({p:2,type:'ad',icon:'⚠️',title:'ROAS低於目標，需要調整',
+        detail:`ROAS ${adROAS}x，低於目標 ${tROAS}x。建議：① 換廣告素材 ② 調整受眾 ③ 檢查嘖嘖頁面轉換。`});
+    }
+  } else if (k.isFarBehind) {
+    const suggest = Math.min(Math.round(k.baseBudget * 2), maxBudget || 999999);
+    acts.push({p:1,type:'ad',icon:'⚠️',title:'嚴重落後，需要啟動廣告',
+      detail:`落後 NT$${(k.gap/10000).toFixed(0)}萬（超15%目標），尚未填廣告數據。建議今天啟動廣告。`,
+      number:`NT$${suggest.toLocaleString()}`,numlbl:'建議最低廣告預算',warn:WARN});
   }
-  if(reach>100){
-    if(er<0.01) acts.push({p:2,type:'organic',icon:'📝',title:'有機互動太低，換內容方向',detail:`互動率 ${(er*100).toFixed(2)}%，低於1%。換方向：真實故事、問句開頭、具體細節。`});
-    else if(er>=0.05) acts.push({p:3,type:'organic',icon:'🔥',title:'有機很好，複製這個風格',detail:`互動率 ${(er*100).toFixed(2)}%，超過5%很強。下一篇照這個語氣走。`});
+
+  // ── 2. 廣告素材 CTR（vs 目標）──
+  if (adCTR > 0) {
+    if (adCTR < tCTRad * 0.5)
+      acts.push({p:1,type:'creative',icon:'🎨',title:'廣告素材需要換',
+        detail:`廣告CTR ${adCTR}%，遠低於目標 ${tCTRad}%。換封面圖（試試義犬將軍特寫）或改文案開頭（疑問句開頭）。`});
+    else if (adCTR < tCTRad)
+      acts.push({p:2,type:'creative',icon:'🔧',title:'廣告CTR略低於目標',
+        detail:`廣告CTR ${adCTR}%，目標 ${tCTRad}%。可以A/B測試不同封面圖，找出更吸眼的版本。`});
+    else if (adCTR >= tCTRad * 2)
+      acts.push({p:2,type:'creative',icon:'✨',title:'高效素材！複製出變體',
+        detail:`廣告CTR ${adCTR}%，是目標的 ${(adCTR/tCTRad).toFixed(1)} 倍。複製3-5個變體換受眾繼續跑。`});
   }
-  if(reach>100&&shareR>=0.02) acts.push({p:2,type:'organic',icon:'🔄',title:'分享率高，拿來下廣告',detail:`分享率 ${(shareR*100).toFixed(2)}%，用這篇做廣告素材。`});
-  if(clicks>50){
-    if(convR<0.02) acts.push({p:1,type:'page',icon:'🔧',title:'頁面轉換太低',detail:`點擊 ${clicks} 次只成交 ${zzOrds} 筆（${(convR*100).toFixed(1)}%）。問題在頁面：① 降低入門方案 ② 強化回饋說明 ③ 加入支持人數。`});
-    else if(convR>=0.1) acts.push({p:3,type:'page',icon:'✅',title:'頁面轉換率很好',detail:`轉換率 ${(convR*100).toFixed(1)}%，策略是增加流量，不是改頁面。`});
+
+  // ── 3. 有機觸及（vs 目標）──
+  if (reach > 0 && tReach > 0) {
+    const reachRatio = reach / tReach;
+    if (reachRatio < 0.5)
+      acts.push({p:2,type:'organic',icon:'📉',title:'有機觸及嚴重不足',
+        detail:`今日觸及 ${reach.toLocaleString()} 人，目標 ${tReach.toLocaleString()} 人（只達到 ${Math.round(reachRatio*100)}%）。考慮提高發文頻率或在尖峰時段發文。`});
+    else if (reachRatio >= 1.5)
+      acts.push({p:3,type:'organic',icon:'📈',title:'有機觸及超標',
+        detail:`今日觸及 ${reach.toLocaleString()} 人，超過目標 ${Math.round((reachRatio-1)*100)}%。記下這篇的發文時間和格式。`});
   }
-  if(adCPM>200) acts.push({p:2,type:'ad',icon:'🎯',title:'CPM偏高，受眾可能飽和',detail:`CPM NT$${adCPM}，超200是飽和訊號。換新受眾或開廣泛受眾。`});
-  if(zzNew>0&&k.dailyNeed>0){
-    const ratio=zzNew/k.dailyNeed;
-    if(ratio<0.5) acts.push({p:2,type:'strategy',icon:'📉',title:`今日達成率 ${Math.round(ratio*100)}%`,detail:`需募 NT$${Math.round(k.dailyNeed/1000)}K，實際 NT$${Math.round(zzNew/1000)}K。連續3天低於50%啟動應急。`});
-    else if(ratio>=1.5) acts.push({p:3,type:'strategy',icon:'📈',title:`今日超額 ${Math.round(ratio*100)}%`,detail:`廣告可略降，省給後段。`});
+
+  // ── 4. 有機互動率（vs 目標）──
+  if (reach > 100) {
+    const erPct = (er * 100).toFixed(2);
+    if (er < tER * 0.5)
+      acts.push({p:2,type:'organic',icon:'📝',title:'有機互動嚴重低於目標',
+        detail:`互動率 ${erPct}%，目標 ${cfg.fb_target_er}%（只達到 ${Math.round(er/tER*100)}%）。換內容方向：真實故事、問句開頭、具體細節。`});
+    else if (er < tER)
+      acts.push({p:2,type:'organic',icon:'⚠️',title:'互動率低於目標',
+        detail:`互動率 ${erPct}%，目標 ${cfg.fb_target_er}%。下一篇試試互動型貼文：留言抽獎、問句邀請回應。`});
+    else if (er >= tER * 1.5)
+      acts.push({p:3,type:'organic',icon:'🔥',title:'互動率大幅超標！',
+        detail:`互動率 ${erPct}%，是目標的 ${(er/tER).toFixed(1)} 倍。把這篇拿來下廣告，有機動能×廣告=最強效果。`});
   }
-  if(k.isFarBehind&&k.remaining>14) acts.push({p:2,type:'strategy',icon:'🐕',title:'聯繫柴語錄提前出動',detail:`落後超15%，還有 ${k.remaining} 天，柴語錄提前介入效果最好。`});
-  acts.sort((a,b)=>a.p-b.p);
-  lastAnalysis=acts;
-  renderActionsTo('wr-actions',acts);
-  renderActionsTo('overview-actions',acts);
-  showToast('✓ 分析完成');
+
+  // ── 5. 有機CTR（vs 目標）──
+  if (reach > 100 && clicks > 0) {
+    const ctrPct = (er * 100).toFixed(2); // reuse
+    const organicCTR = clicks / reach;
+    if (organicCTR < tCTR * 0.5)
+      acts.push({p:2,type:'organic',icon:'🔗',title:'連結點擊率太低',
+        detail:`有機CTR ${(organicCTR*100).toFixed(2)}%，目標 ${cfg.fb_target_ctr}%。嘖嘖連結是否放在留言置頂？文案裡有沒有明確CTA？`});
+  }
+
+  // ── 6. 分享率（病毒潛力）──
+  if (reach > 100 && shareR >= 0.02)
+    acts.push({p:2,type:'organic',icon:'🔄',title:'分享率高，拿來下廣告',
+      detail:`分享率 ${(shareR*100).toFixed(2)}%，有機傳播力強。用這篇做廣告素材，有機動能×廣告=最強組合。`});
+
+  // ── 7. 嘖嘖頁面轉換率（vs 目標）──
+  if (clicks > 30) {
+    const convPct = (convR * 100).toFixed(1);
+    if (convR < tConv * 0.4)
+      acts.push({p:1,type:'page',icon:'🔧',title:'嘖嘖頁面轉換嚴重不足',
+        detail:`點擊 ${clicks} 次只成交 ${zzOrds} 筆（轉換率 ${convPct}%，目標 ${cfg.zz_target_conv}%）。問題在頁面不在廣告：① 降低入門方案 ② 強化回饋說明 ③ 加入已支持人數。`});
+    else if (convR < tConv)
+      acts.push({p:2,type:'page',icon:'⚠️',title:'頁面轉換率低於目標',
+        detail:`轉換率 ${convPct}%，目標 ${cfg.zz_target_conv}%。檢查嘖嘖頁面：標題是否清楚？入門方案是否吸引人？`});
+    else if (convR >= tConv * 1.5)
+      acts.push({p:3,type:'page',icon:'✅',title:'頁面轉換率超標！',
+        detail:`轉換率 ${convPct}%，超過目標 ${Math.round((convR/tConv-1)*100)}%。頁面很強，現在最大化流量就對了。`});
+  }
+
+  // ── 8. 客單價（vs 目標）──
+  if (aov > 0 && tAOV > 0) {
+    if (aov < tAOV * 0.7)
+      acts.push({p:2,type:'strategy',icon:'💸',title:'客單價低於目標',
+        detail:`平均客單價 NT$${Math.round(aov).toLocaleString()}，目標 NT$${tAOV.toLocaleString()}。推廣組合方案或家族傳承組，拉高客單。`});
+    else if (aov >= tAOV * 1.3)
+      acts.push({p:3,type:'strategy',icon:'💎',title:'客單價超標！',
+        detail:`平均客單價 NT$${Math.round(aov).toLocaleString()}，超過目標 ${Math.round((aov/tAOV-1)*100)}%。高單方案有人買，可以加大推廣。`});
+  }
+
+  // ── 9. CPM（受眾飽和）──
+  if (adCPM > 0 && adCPM > tCPM)
+    acts.push({p:2,type:'ad',icon:'🎯',title:'CPM超過設定上限，受眾可能飽和',
+      detail:`CPM NT$${adCPM}，超過目標上限 NT$${tCPM}。換新受眾（試試寵物飼主+非信仰族群）或開廣泛受眾。`});
+
+  // ── 10. 粉絲成長追蹤──
+  if (fanGrowth !== null && curFans > 0) {
+    const growthPct = cfg.fb_initial_fans > 0 ? (fanGrowth / cfg.fb_initial_fans * 100).toFixed(1) : 0;
+    if (fanGrowth < 0)
+      acts.push({p:2,type:'organic',icon:'📊',title:'粉絲數下滑',
+        detail:`目前 ${curFans.toLocaleString()} 人，比開案時少 ${Math.abs(fanGrowth)} 人。檢查是否有負評或退追潮。`});
+    else if (fanGrowth > 0 && k.elapsed > 0)
+      acts.push({p:3,type:'organic',icon:'👥',title:`粉絲成長 +${fanGrowth.toLocaleString()} 人（+${growthPct}%）`,
+        detail:`開案至今 ${k.elapsed} 天，從 ${cfg.fb_initial_fans.toLocaleString()} 成長到 ${curFans.toLocaleString()} 人。平均每天 +${Math.round(fanGrowth/k.elapsed)} 人。`});
+  }
+
+  // ── 11. 每日募資達成率──
+  if (zzNew > 0 && k.dailyNeed > 0) {
+    const ratio = zzNew / k.dailyNeed;
+    if (ratio < 0.5)
+      acts.push({p:2,type:'strategy',icon:'📉',title:`今日達成率 ${Math.round(ratio*100)}%，低於目標`,
+        detail:`今日需募 NT$${Math.round(k.dailyNeed/1000)}K，實際 NT$${Math.round(zzNew/1000)}K。連續3天低於50%要啟動應急計畫。`});
+    else if (ratio >= 1.5)
+      acts.push({p:3,type:'strategy',icon:'📈',title:`今日超額 ${Math.round(ratio*100)}%`,
+        detail:`募得 NT$${Math.round(zzNew/1000)}K，超目標 ${Math.round((ratio-1)*100)}%。廣告可略降，省給後段衝刺。`});
+  }
+
+  // ── 12. 柴語錄觸發──
+  if (k.isFarBehind && k.remaining > 14)
+    acts.push({p:2,type:'strategy',icon:'🐕',title:'聯繫柴語錄提前出動',
+      detail:`落後超15%，還有 ${k.remaining} 天，柴語錄提前介入效果最好。本週就聯繫。`});
+
+  // ── 13. 限動觸及（vs 目標）──
+  if (stReach > 0 && cfg.fb_target_story_reach > 0) {
+    if (stReach < cfg.fb_target_story_reach * 0.5)
+      acts.push({p:2,type:'organic',icon:'📱',title:'限動觸及嚴重不足',
+        detail:`限動觸及 ${stReach.toLocaleString()} 人，目標 ${cfg.fb_target_story_reach.toLocaleString()} 人。增加限動頻率，或在熱門有機貼文下發限動引流。`});
+  }
+
+  acts.sort((a,b) => a.p - b.p);
+  lastAnalysis = acts;
+  renderActionsTo('wr-actions', acts);
+  renderActionsTo('overview-actions', acts);
+  showToast(`✓ 分析完成，共 ${acts.length} 項建議`);
 }
 
 function renderActionsTo(targetId,acts){
@@ -803,17 +1043,66 @@ function renderActionsTo(targetId,acts){
 
 // ════ Setup ═══════════════════════════════════
 function openSetup(){
-  document.getElementById('s-goal').value=cfg.goal;document.getElementById('s-start').value=cfg.start;
-  document.getElementById('s-end').value=cfg.end;document.getElementById('s-cur').value=cfg.current;
+  document.getElementById('s-name').value   = cfg.name||'';
+  document.getElementById('s-goal').value   = cfg.goal;
+  document.getElementById('s-start').value  = cfg.start;
+  document.getElementById('s-end').value    = cfg.end;
+  document.getElementById('s-cur').value    = cfg.current;
+  document.getElementById('s-url').value    = cfg.url||'';
+  document.getElementById('s-fb-fans').value= cfg.fb_initial_fans||0;
+  document.getElementById('s-fb-reach').value=cfg.fb_target_reach||1000;
+  document.getElementById('s-fb-er').value  = cfg.fb_target_er||3.0;
+  document.getElementById('s-fb-ctr').value = cfg.fb_target_ctr||1.0;
+  document.getElementById('s-st-reach').value=cfg.fb_target_story_reach||500;
+  document.getElementById('s-ad-budget').value=cfg.ad_daily_budget||3000;
+  document.getElementById('s-ad-roas').value = cfg.ad_target_roas||3.0;
+  document.getElementById('s-ad-ctr').value  = cfg.ad_target_ctr||1.5;
+  document.getElementById('s-ad-cpm').value  = cfg.ad_target_cpm||150;
+  document.getElementById('s-aov').value     = cfg.zz_target_aov||1000;
+  document.getElementById('s-conv').value    = cfg.zz_target_conv||5.0;
   document.getElementById('setupModal').style.display='flex';
 }
+
 async function saveSetup(){
-  cfg.goal=parseInt(document.getElementById('s-goal').value)||5000000;
-  cfg.start=document.getElementById('s-start').value;cfg.end=document.getElementById('s-end').value;
-  cfg.current=parseInt(document.getElementById('s-cur').value)||0;
-  await SB.from('ym_config').upsert([{key:'goal',value:String(cfg.goal)},{key:'start',value:cfg.start},{key:'end',value:cfg.end},{key:'current',value:String(cfg.current)}]);
+  cfg.name               = document.getElementById('s-name').value||'義民廟 × 柴語錄';
+  cfg.goal               = parseInt(document.getElementById('s-goal').value)||5000000;
+  cfg.start              = document.getElementById('s-start').value;
+  cfg.end                = document.getElementById('s-end').value;
+  cfg.current            = parseInt(document.getElementById('s-cur').value)||0;
+  cfg.url                = document.getElementById('s-url').value||'';
+  cfg.fb_initial_fans    = parseInt(document.getElementById('s-fb-fans').value)||0;
+  cfg.fb_target_reach    = parseInt(document.getElementById('s-fb-reach').value)||1000;
+  cfg.fb_target_er       = parseFloat(document.getElementById('s-fb-er').value)||3.0;
+  cfg.fb_target_ctr      = parseFloat(document.getElementById('s-fb-ctr').value)||1.0;
+  cfg.fb_target_story_reach=parseInt(document.getElementById('s-st-reach').value)||500;
+  cfg.ad_daily_budget    = parseInt(document.getElementById('s-ad-budget').value)||3000;
+  cfg.ad_target_roas     = parseFloat(document.getElementById('s-ad-roas').value)||3.0;
+  cfg.ad_target_ctr      = parseFloat(document.getElementById('s-ad-ctr').value)||1.5;
+  cfg.ad_target_cpm      = parseInt(document.getElementById('s-ad-cpm').value)||150;
+  cfg.zz_target_aov      = parseInt(document.getElementById('s-aov').value)||1000;
+  cfg.zz_target_conv     = parseFloat(document.getElementById('s-conv').value)||5.0;
+
+  await SB.from('ym_config').upsert([
+    {key:'name',               value:cfg.name},
+    {key:'goal',               value:String(cfg.goal)},
+    {key:'start',              value:cfg.start},
+    {key:'end',                value:cfg.end},
+    {key:'current',            value:String(cfg.current)},
+    {key:'url',                value:cfg.url},
+    {key:'fb_initial_fans',    value:String(cfg.fb_initial_fans)},
+    {key:'fb_target_reach',    value:String(cfg.fb_target_reach)},
+    {key:'fb_target_er',       value:String(cfg.fb_target_er)},
+    {key:'fb_target_ctr',      value:String(cfg.fb_target_ctr)},
+    {key:'fb_target_story_reach',value:String(cfg.fb_target_story_reach)},
+    {key:'ad_daily_budget',    value:String(cfg.ad_daily_budget)},
+    {key:'ad_target_roas',     value:String(cfg.ad_target_roas)},
+    {key:'ad_target_ctr',      value:String(cfg.ad_target_ctr)},
+    {key:'ad_target_cpm',      value:String(cfg.ad_target_cpm)},
+    {key:'zz_target_aov',      value:String(cfg.zz_target_aov)},
+    {key:'zz_target_conv',     value:String(cfg.zz_target_conv)},
+  ]);
   document.getElementById('setupModal').style.display='none';
-  renderOverview();showToast('✓ 設定已儲存');
+  renderOverview(); showToast('✓ 所有設定已儲存到雲端');
 }
 function promptUpdateAmount(){
   const v=prompt('輸入目前累積募資金額（NT$）：',cfg.current||0);
