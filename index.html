@@ -828,7 +828,7 @@ function showView(v) {
 
 // ════ Fill Inputs ═════════════════════════════
 function fillInputs(d) {
-  const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null&&v!=0)el.value=v;};
+  const s=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
   s('zz-new',d.zz_new_amount);s('zz-orders',d.zz_new_orders);s('zz-total',d.zz_total);
   s('fb-fans-total',d.fb_total_fans);s('fb-fans-new',d.fb_new_fans);
   s('fb-reach',d.fb_reach);s('fb-inter',d.fb_interactions);
@@ -850,13 +850,13 @@ function autoCalc() {
     ctrEl.value=ctr+'%';ctrEl.className='calc'+(parseFloat(ctr)>=2?' calc-g':parseFloat(ctr)<0.3?' calc-r':'');
   } else {erEl.value='';erEl.className='calc';ctrEl.value='';ctrEl.className='calc';}
   document.getElementById('zz-aov').value=(zzOrds>0&&zzNew>0)?'NT$'+Math.round(zzNew/zzOrds).toLocaleString():'';
-  if(zzTotal>0){cfg.current=zzTotal;renderStats();}
+  cfg.current=zzTotal;renderStats();
   clearTimeout(dailySaveTimer);dailySaveTimer=setTimeout(saveDaily,1500);
 }
 
 async function saveDaily() {
   const zzTotal=getN('zz-total');
-  if(zzTotal>0) await SB.from('ym_config').upsert([{key:'current',value:String(zzTotal)}]);
+  await SB.from('ym_config').upsert([{key:'current',value:String(zzTotal)}]);
   await SB.from('ym_daily').upsert([{
     date:TODAY,zz_new_amount:getN('zz-new'),zz_new_orders:getN('zz-orders'),zz_total:zzTotal,
     fb_total_fans:getN('fb-fans-total'),fb_new_fans:getN('fb-fans-new'),
