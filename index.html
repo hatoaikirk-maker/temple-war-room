@@ -229,6 +229,30 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 .toast{position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
 .view{display:none}.view.active{display:block}
+
+/* ── 公式庫 Modal ── */
+.formula-modal{background:var(--w);border-radius:16px;padding:0;width:100%;max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.fm-head{padding:18px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:#fafbfc}
+.fm-head h2{font-size:16px;font-weight:800}
+.fm-head p{font-size:11px;color:var(--t3);margin-top:2px}
+.fm-close{font-size:18px;cursor:pointer;color:var(--t3);border:none;background:none;padding:4px 8px;border-radius:6px}
+.fm-close:hover{background:var(--bd)}
+.fm-body{padding:18px 22px;overflow-y:auto;flex:1}
+.fm-section{margin-bottom:20px}
+.fm-section-title{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+.fm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:600px){.fm-grid{grid-template-columns:1fr 1fr}}
+.fm-field{background:#f8fafc;border-radius:8px;padding:10px 11px}
+.fm-field label{font-size:9px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px}
+.fm-field input{width:100%;border:1.5px solid var(--bd);border-radius:6px;padding:5px 8px;font-size:13px;font-weight:700;color:var(--t);background:var(--w);text-align:center}
+.fm-field input:focus{outline:none;border-color:var(--blue)}
+.fm-field .fm-unit{font-size:9px;color:var(--t3);text-align:center;margin-top:2px}
+.fm-formula{background:#f0f3f8;border-radius:6px;padding:5px 8px;font-size:10px;color:var(--t2);margin-top:3px;font-family:monospace}
+.fm-footer{padding:14px 22px;border-top:1px solid var(--bd);display:flex;gap:10px;background:#fafbfc}
+.fm-save-btn{flex:1;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
+.fm-save-btn:hover{background:#1d4ed8}
+.fm-cancel-btn{background:var(--w);color:var(--t2);border:1.5px solid var(--bd);border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer}
+.fm-cancel-btn:hover{background:var(--bg)}
 </style>
 </head>
 <body>
@@ -251,6 +275,16 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
 
     <div class="modal-divider">👥 FB 粉絲頁初始參數</div>
     <div class="mg"><label>開案時粉絲數（人）</label><input type="number" id="s-fb-fans" placeholder="0"><div class="mg-hint">募資第一天的粉絲數，用來計算這60天長了多少粉</div></div>
+    <div class="modal-divider" style="font-size:9px;margin-top:10px;margin-bottom:6px">📊 募資前實際基線（開案前頁面表現，用於比較成長）</div>
+    <div class="mg mg-row">
+      <div><label>開案前平均每篇觸及（人）</label><input type="number" id="s-base-reach" placeholder="300"><div class="mg-hint">開案前粉絲頁的實際觸及，非目標值</div></div>
+      <div><label>開案前平均互動率（%）</label><input type="number" id="s-base-er" placeholder="1.5" step="0.1"><div class="mg-hint">開案前實際互動率，用來比較成長幅度</div></div>
+    </div>
+    <div class="mg mg-row">
+      <div><label>開案前平均有機CTR（%）</label><input type="number" id="s-base-ctr" placeholder="0.5" step="0.1"><div class="mg-hint">開案前實際CTR，與募資期間比較</div></div>
+      <div><label>開案前平均限動觸及（人）</label><input type="number" id="s-base-story" placeholder="150"><div class="mg-hint">開案前限動實際觸及人數</div></div>
+    </div>
+    <div class="modal-divider" style="font-size:9px;margin-top:10px;margin-bottom:6px">🎯 目標值（警示門檻）</div>
     <div class="mg mg-row">
       <div><label>目標每篇觸及（人）</label><input type="number" id="s-fb-reach" placeholder="1000"><div class="mg-hint">每篇貼文預期觸及人數</div></div>
       <div><label>目標互動率（%）</label><input type="number" id="s-fb-er" placeholder="3.0" step="0.1"><div class="mg-hint">互動數÷觸及，低於此值會警示</div></div>
@@ -277,6 +311,74 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
     </div>
 
     <button class="modal-btn" onclick="saveSetup()">💾 儲存所有設定 →</button>
+  </div>
+</div>
+
+<!-- 公式庫 Modal -->
+<div class="overlay" id="formulaModal" style="display:none">
+  <div class="formula-modal">
+    <div class="fm-head">
+      <div>
+        <h2>🧮 公式庫 / 計算參數</h2>
+        <p>所有影響系統計算與行動建議的參數，可即時修改並儲存</p>
+      </div>
+      <button class="fm-close" onclick="closeFormula()">✕</button>
+    </div>
+    <div class="fm-body">
+
+      <div class="fm-section">
+        <div class="fm-section-title">💰 募資核心</div>
+        <div class="fm-grid">
+          <div class="fm-field"><label>募資目標（NT$）</label><input type="number" id="fm-goal"><div class="fm-unit">元</div><div class="fm-formula">達成率 = 累積金額 ÷ 目標</div></div>
+          <div class="fm-field"><label>每日需募（自動）</label><input type="text" id="fm-daily-need" readonly style="background:#f0f3f8;color:var(--t2)"><div class="fm-unit">（目標－累積）÷ 剩餘天</div></div>
+          <div class="fm-field"><label>廣告基礎預算（NT$）</label><input type="number" id="fm-base-budget"><div class="fm-unit">= 目標 × 8% ÷ 天數</div><div class="fm-formula">每日廣告基準</div></div>
+        </div>
+      </div>
+
+      <div class="fm-section">
+        <div class="fm-section-title">📊 開案前基線（募資前實際值）</div>
+        <div class="fm-grid">
+          <div class="fm-field"><label>開案前平均觸及（人）</label><input type="number" id="fm-base-reach"><div class="fm-unit">人/篇</div><div class="fm-formula">今日觸及 ÷ 基線 = 成長倍率</div></div>
+          <div class="fm-field"><label>開案前互動率（%）</label><input type="number" id="fm-base-er" step="0.1"><div class="fm-unit">%</div><div class="fm-formula">互動÷觸及×100</div></div>
+          <div class="fm-field"><label>開案前有機CTR（%）</label><input type="number" id="fm-base-ctr" step="0.1"><div class="fm-unit">%</div><div class="fm-formula">點擊÷觸及×100</div></div>
+          <div class="fm-field"><label>開案前限動觸及（人）</label><input type="number" id="fm-base-story"><div class="fm-unit">人/則</div></div>
+          <div class="fm-field"><label>開案時粉絲數（人）</label><input type="number" id="fm-fans"><div class="fm-unit">人</div><div class="fm-formula">今日粉絲 － 此值 = 新增粉</div></div>
+        </div>
+      </div>
+
+      <div class="fm-section">
+        <div class="fm-section-title">🎯 目標值（警示門檻）</div>
+        <div class="fm-grid">
+          <div class="fm-field"><label>目標每篇觸及（人）</label><input type="number" id="fm-target-reach"><div class="fm-unit">人</div><div class="fm-formula">低於此值 → 觸及不足警示</div></div>
+          <div class="fm-field"><label>目標互動率（%）</label><input type="number" id="fm-target-er" step="0.1"><div class="fm-unit">%</div><div class="fm-formula">低於此值 → 互動低警示</div></div>
+          <div class="fm-field"><label>目標有機CTR（%）</label><input type="number" id="fm-target-ctr" step="0.1"><div class="fm-unit">%</div><div class="fm-formula">低於此值 → CTR低警示</div></div>
+          <div class="fm-field"><label>目標限動觸及（人）</label><input type="number" id="fm-target-story"><div class="fm-unit">人</div></div>
+        </div>
+      </div>
+
+      <div class="fm-section">
+        <div class="fm-section-title">📣 廣告參數</div>
+        <div class="fm-grid">
+          <div class="fm-field"><label>每日廣告預算上限（NT$）</label><input type="number" id="fm-ad-budget"><div class="fm-unit">NT$</div><div class="fm-formula">所有廣告建議不超過此值</div></div>
+          <div class="fm-field"><label>目標 ROAS（倍）</label><input type="number" id="fm-ad-roas" step="0.1"><div class="fm-unit">倍</div><div class="fm-formula">ROAS ÷ 目標ROAS 判斷加減碼</div></div>
+          <div class="fm-field"><label>目標廣告CTR（%）</label><input type="number" id="fm-ad-ctr" step="0.1"><div class="fm-unit">%</div><div class="fm-formula">低於50% → 換素材建議</div></div>
+          <div class="fm-field"><label>目標 CPM 上限（NT$）</label><input type="number" id="fm-ad-cpm"><div class="fm-unit">NT$/千次</div><div class="fm-formula">超過此值 → 受眾飽和警示</div></div>
+        </div>
+      </div>
+
+      <div class="fm-section">
+        <div class="fm-section-title">💰 嘖嘖轉換參數</div>
+        <div class="fm-grid">
+          <div class="fm-field"><label>目標平均客單價（NT$）</label><input type="number" id="fm-aov"><div class="fm-unit">NT$</div><div class="fm-formula">今日成交額 ÷ 今日筆數</div></div>
+          <div class="fm-field"><label>目標頁面轉換率（%）</label><input type="number" id="fm-conv" step="0.1"><div class="fm-unit">%</div><div class="fm-formula">成交筆數 ÷ 連結點擊數 × 100</div></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="fm-footer">
+      <button class="fm-cancel-btn" onclick="closeFormula()">取消</button>
+      <button class="fm-save-btn" onclick="saveFormula()">💾 儲存所有參數</button>
+    </div>
   </div>
 </div>
 
@@ -314,6 +416,7 @@ body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background
       <small class="topbar-sub">以下是募資案最新進度與今日作戰重點</small>
     </div>
     <div class="topbar-date">📅 <span id="topbar-date"></span></div>
+    <button class="topbtn" onclick="openFormula()">🧮 公式庫</button>
     <button class="topbtn primary" onclick="promptUpdateAmount()">💰 更新金額</button>
   </div>
 
@@ -470,6 +573,12 @@ let cfg = {
   url:'',
   // FB 初始參數
   fb_initial_fans:0,
+  // 開案前實際基線（比較用）
+  fb_base_reach:0,
+  fb_base_er:0,
+  fb_base_ctr:0,
+  fb_base_story_reach:0,
+  // 目標值（警示門檻）
   fb_target_reach:1000,
   fb_target_er:3.0,
   fb_target_ctr:1.0,
@@ -509,6 +618,10 @@ async function init() {
       if(r.key==='current')             cfg.current=parseInt(r.value)||0;
       if(r.key==='url')                 cfg.url=r.value;
       if(r.key==='fb_initial_fans')     cfg.fb_initial_fans=parseInt(r.value)||0;
+      if(r.key==='fb_base_reach')       cfg.fb_base_reach=parseInt(r.value)||0;
+      if(r.key==='fb_base_er')          cfg.fb_base_er=parseFloat(r.value)||0;
+      if(r.key==='fb_base_ctr')         cfg.fb_base_ctr=parseFloat(r.value)||0;
+      if(r.key==='fb_base_story_reach') cfg.fb_base_story_reach=parseInt(r.value)||0;
       if(r.key==='fb_target_reach')     cfg.fb_target_reach=parseInt(r.value)||1000;
       if(r.key==='fb_target_er')        cfg.fb_target_er=parseFloat(r.value)||3.0;
       if(r.key==='fb_target_ctr')       cfg.fb_target_ctr=parseFloat(r.value)||1.0;
@@ -1001,6 +1114,35 @@ function runAnalysis(){
         detail:`開案至今 ${k.elapsed} 天，從 ${cfg.fb_initial_fans.toLocaleString()} 成長到 ${curFans.toLocaleString()} 人。平均每天 +${Math.round(fanGrowth/k.elapsed)} 人。`});
   }
 
+  // ── 10b. 基線比較（募資前 vs 現在）──
+  if (reach > 0 && cfg.fb_base_reach > 0) {
+    const reachGrowth = ((reach - cfg.fb_base_reach) / cfg.fb_base_reach * 100).toFixed(0);
+    const reachDir = reach >= cfg.fb_base_reach ? '📈' : '📉';
+    const reachSign = reach >= cfg.fb_base_reach ? '+' : '';
+    acts.push({p:3,type:'organic',icon:reachDir,title:`觸及 vs 募資前：${reachSign}${reachGrowth}%`,
+      detail:`今日觸及 ${reach.toLocaleString()} 人，開案前基線 ${cfg.fb_base_reach.toLocaleString()} 人（${reachSign}${reachGrowth}%）。${parseInt(reachGrowth)>=50?'觸及大幅成長，募資行銷效果顯著！':parseInt(reachGrowth)<0?'觸及低於開案前，建議檢查內容方向。':'觸及持續成長中。'}`});
+  }
+  if (reach > 0 && inter > 0 && cfg.fb_base_er > 0) {
+    const curER = (er * 100);
+    const erGrowth = ((curER - cfg.fb_base_er) / cfg.fb_base_er * 100).toFixed(0);
+    const erSign = curER >= cfg.fb_base_er ? '+' : '';
+    acts.push({p:3,type:'organic',icon:'💬',title:`互動率 vs 募資前：${erSign}${erGrowth}%`,
+      detail:`今日互動率 ${curER.toFixed(2)}%，開案前基線 ${cfg.fb_base_er}%（${erSign}${erGrowth}%）。${parseFloat(erGrowth)>0?'互動率提升，內容共鳴度提高。':'互動率下滑，考慮加入問句或情感性內容。'}`});
+  }
+  if (reach > 100 && clicks > 0 && cfg.fb_base_ctr > 0) {
+    const curCTR = (clicks / reach * 100);
+    const ctrGrowth = ((curCTR - cfg.fb_base_ctr) / cfg.fb_base_ctr * 100).toFixed(0);
+    const ctrSign = curCTR >= cfg.fb_base_ctr ? '+' : '';
+    acts.push({p:3,type:'organic',icon:'🔗',title:`有機CTR vs 募資前：${ctrSign}${ctrGrowth}%`,
+      detail:`今日CTR ${curCTR.toFixed(2)}%，開案前基線 ${cfg.fb_base_ctr}%（${ctrSign}${ctrGrowth}%）。${parseFloat(ctrGrowth)>0?'點擊率提升，CTA有效！':'點擊率下滑，檢查文案CTA是否夠明確。'}`});
+  }
+  if (stReach > 0 && cfg.fb_base_story_reach > 0) {
+    const stGrowth = ((stReach - cfg.fb_base_story_reach) / cfg.fb_base_story_reach * 100).toFixed(0);
+    const stSign = stReach >= cfg.fb_base_story_reach ? '+' : '';
+    acts.push({p:3,type:'organic',icon:'📱',title:`限動觸及 vs 募資前：${stSign}${stGrowth}%`,
+      detail:`今日限動觸及 ${stReach.toLocaleString()} 人，開案前基線 ${cfg.fb_base_story_reach.toLocaleString()} 人（${stSign}${stGrowth}%）。`});
+  }
+
   // ── 11. 每日募資達成率──
   if (zzNew > 0 && k.dailyNeed > 0) {
     const ratio = zzNew / k.dailyNeed;
@@ -1050,6 +1192,10 @@ function openSetup(){
   document.getElementById('s-cur').value    = cfg.current;
   document.getElementById('s-url').value    = cfg.url||'';
   document.getElementById('s-fb-fans').value= cfg.fb_initial_fans||0;
+  document.getElementById('s-base-reach').value= cfg.fb_base_reach||0;
+  document.getElementById('s-base-er').value=    cfg.fb_base_er||0;
+  document.getElementById('s-base-ctr').value=   cfg.fb_base_ctr||0;
+  document.getElementById('s-base-story').value= cfg.fb_base_story_reach||0;
   document.getElementById('s-fb-reach').value=cfg.fb_target_reach||1000;
   document.getElementById('s-fb-er').value  = cfg.fb_target_er||3.0;
   document.getElementById('s-fb-ctr').value = cfg.fb_target_ctr||1.0;
@@ -1071,6 +1217,10 @@ async function saveSetup(){
   cfg.current            = parseInt(document.getElementById('s-cur').value)||0;
   cfg.url                = document.getElementById('s-url').value||'';
   cfg.fb_initial_fans    = parseInt(document.getElementById('s-fb-fans').value)||0;
+  cfg.fb_base_reach      = parseInt(document.getElementById('s-base-reach').value)||0;
+  cfg.fb_base_er         = parseFloat(document.getElementById('s-base-er').value)||0;
+  cfg.fb_base_ctr        = parseFloat(document.getElementById('s-base-ctr').value)||0;
+  cfg.fb_base_story_reach= parseInt(document.getElementById('s-base-story').value)||0;
   cfg.fb_target_reach    = parseInt(document.getElementById('s-fb-reach').value)||1000;
   cfg.fb_target_er       = parseFloat(document.getElementById('s-fb-er').value)||3.0;
   cfg.fb_target_ctr      = parseFloat(document.getElementById('s-fb-ctr').value)||1.0;
@@ -1090,6 +1240,10 @@ async function saveSetup(){
     {key:'current',            value:String(cfg.current)},
     {key:'url',                value:cfg.url},
     {key:'fb_initial_fans',    value:String(cfg.fb_initial_fans)},
+    {key:'fb_base_reach',      value:String(cfg.fb_base_reach)},
+    {key:'fb_base_er',         value:String(cfg.fb_base_er)},
+    {key:'fb_base_ctr',        value:String(cfg.fb_base_ctr)},
+    {key:'fb_base_story_reach',value:String(cfg.fb_base_story_reach)},
     {key:'fb_target_reach',    value:String(cfg.fb_target_reach)},
     {key:'fb_target_er',       value:String(cfg.fb_target_er)},
     {key:'fb_target_ctr',      value:String(cfg.fb_target_ctr)},
@@ -1104,6 +1258,77 @@ async function saveSetup(){
   document.getElementById('setupModal').style.display='none';
   renderOverview(); showToast('✓ 所有設定已儲存到雲端');
 }
+// ════ 公式庫 ══════════════════════════════════
+function openFormula(){
+  const k=kpi();
+  // 填入目前所有參數值
+  document.getElementById('fm-goal').value        = cfg.goal;
+  document.getElementById('fm-daily-need').value  = 'NT$'+Math.round(k.dailyNeed/1000)+'K（剩'+k.remaining+'天）';
+  document.getElementById('fm-base-budget').value = cfg.goal>0&&k.total>0?Math.round(cfg.goal*0.08/k.total):3000;
+  document.getElementById('fm-base-reach').value  = cfg.fb_base_reach||0;
+  document.getElementById('fm-base-er').value     = cfg.fb_base_er||0;
+  document.getElementById('fm-base-ctr').value    = cfg.fb_base_ctr||0;
+  document.getElementById('fm-base-story').value  = cfg.fb_base_story_reach||0;
+  document.getElementById('fm-fans').value        = cfg.fb_initial_fans||0;
+  document.getElementById('fm-target-reach').value= cfg.fb_target_reach||1000;
+  document.getElementById('fm-target-er').value   = cfg.fb_target_er||3.0;
+  document.getElementById('fm-target-ctr').value  = cfg.fb_target_ctr||1.0;
+  document.getElementById('fm-target-story').value= cfg.fb_target_story_reach||500;
+  document.getElementById('fm-ad-budget').value   = cfg.ad_daily_budget||3000;
+  document.getElementById('fm-ad-roas').value     = cfg.ad_target_roas||3.0;
+  document.getElementById('fm-ad-ctr').value      = cfg.ad_target_ctr||1.5;
+  document.getElementById('fm-ad-cpm').value      = cfg.ad_target_cpm||150;
+  document.getElementById('fm-aov').value         = cfg.zz_target_aov||1000;
+  document.getElementById('fm-conv').value        = cfg.zz_target_conv||5.0;
+  document.getElementById('formulaModal').style.display='flex';
+}
+function closeFormula(){
+  document.getElementById('formulaModal').style.display='none';
+}
+async function saveFormula(){
+  // 讀取所有欄位並寫回 cfg
+  const newGoal = parseInt(document.getElementById('fm-goal').value)||cfg.goal;
+  cfg.goal               = newGoal;
+  cfg.fb_base_reach      = parseInt(document.getElementById('fm-base-reach').value)||0;
+  cfg.fb_base_er         = parseFloat(document.getElementById('fm-base-er').value)||0;
+  cfg.fb_base_ctr        = parseFloat(document.getElementById('fm-base-ctr').value)||0;
+  cfg.fb_base_story_reach= parseInt(document.getElementById('fm-base-story').value)||0;
+  cfg.fb_initial_fans    = parseInt(document.getElementById('fm-fans').value)||0;
+  cfg.fb_target_reach    = parseInt(document.getElementById('fm-target-reach').value)||1000;
+  cfg.fb_target_er       = parseFloat(document.getElementById('fm-target-er').value)||3.0;
+  cfg.fb_target_ctr      = parseFloat(document.getElementById('fm-target-ctr').value)||1.0;
+  cfg.fb_target_story_reach=parseInt(document.getElementById('fm-target-story').value)||500;
+  cfg.ad_daily_budget    = parseInt(document.getElementById('fm-ad-budget').value)||3000;
+  cfg.ad_target_roas     = parseFloat(document.getElementById('fm-ad-roas').value)||3.0;
+  cfg.ad_target_ctr      = parseFloat(document.getElementById('fm-ad-ctr').value)||1.5;
+  cfg.ad_target_cpm      = parseInt(document.getElementById('fm-ad-cpm').value)||150;
+  cfg.zz_target_aov      = parseInt(document.getElementById('fm-aov').value)||1000;
+  cfg.zz_target_conv     = parseFloat(document.getElementById('fm-conv').value)||5.0;
+
+  // 儲存到 Supabase
+  await SB.from('ym_config').upsert([
+    {key:'goal',               value:String(cfg.goal)},
+    {key:'fb_base_reach',      value:String(cfg.fb_base_reach)},
+    {key:'fb_base_er',         value:String(cfg.fb_base_er)},
+    {key:'fb_base_ctr',        value:String(cfg.fb_base_ctr)},
+    {key:'fb_base_story_reach',value:String(cfg.fb_base_story_reach)},
+    {key:'fb_initial_fans',    value:String(cfg.fb_initial_fans)},
+    {key:'fb_target_reach',    value:String(cfg.fb_target_reach)},
+    {key:'fb_target_er',       value:String(cfg.fb_target_er)},
+    {key:'fb_target_ctr',      value:String(cfg.fb_target_ctr)},
+    {key:'fb_target_story_reach',value:String(cfg.fb_target_story_reach)},
+    {key:'ad_daily_budget',    value:String(cfg.ad_daily_budget)},
+    {key:'ad_target_roas',     value:String(cfg.ad_target_roas)},
+    {key:'ad_target_ctr',      value:String(cfg.ad_target_ctr)},
+    {key:'ad_target_cpm',      value:String(cfg.ad_target_cpm)},
+    {key:'zz_target_aov',      value:String(cfg.zz_target_aov)},
+    {key:'zz_target_conv',     value:String(cfg.zz_target_conv)},
+  ]);
+  closeFormula();
+  renderOverview();
+  showToast('✓ 公式庫參數已儲存');
+}
+
 function promptUpdateAmount(){
   const v=prompt('輸入目前累積募資金額（NT$）：',cfg.current||0);
   if(v!==null){cfg.current=parseInt(v)||0;document.getElementById('zz-total').value=cfg.current;SB.from('ym_config').upsert([{key:'current',value:String(cfg.current)}]);renderStats();renderProgressBar();}
